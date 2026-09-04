@@ -68,6 +68,66 @@ Opt out for a shell or a whole box:
 export CHRONARA_WELCOME=0
 ```
 
+## Testing it without touching your setup
+
+See the banner and nothing else:
+
+```sh
+./install.sh --preview
+```
+
+Do a complete install against a throwaway `$HOME`, so your real dotfiles are
+never touched:
+
+```sh
+SB=$(mktemp -d)
+HOME="$SB" ./install.sh
+HOME="$SB" ZDOTDIR="$SB" zsh -l    # login shell
+HOME="$SB" ZDOTDIR="$SB" zsh -i    # new terminal
+rm -rf "$SB"
+```
+
+Set `ZDOTDIR` as well as `HOME`. If you already have `ZDOTDIR` exported, zsh
+reads `$ZDOTDIR/.zshrc` and ignores the sandbox entirely, and the test silently
+passes or fails for the wrong reason.
+
+To preview an uninstall before running it:
+
+```sh
+./install.sh --dry-run --uninstall
+```
+
+## Switching versions
+
+Just run the version you want. Installing **overwrites in place**: the banner
+file is replaced and the guarded rc block is rewritten rather than appended, so
+you never end up with two banners firing or a rc file that grows every time.
+You do not need to uninstall first.
+
+## Uninstall
+
+```sh
+./install.sh --uninstall              # current user
+sudo ./install.sh --uninstall --system  # also the system-wide files
+```
+
+It distinguishes between the two things the installer does:
+
+- **rc files** got a guarded block appended, so uninstall removes only that
+  block. Anything you added to `.zshrc` afterwards is kept.
+- **whole files** (`welcome.sh`, and with a full install `starship.toml` and
+  `tmux.conf`) were replaced, so uninstall puts the `.chrbak` backup back if
+  there is one.
+
+If a config has no backup, it is removed **only when it is byte-identical to the
+copy this repo ships**. That is the only proof it came from here. A
+`--welcome-only` install never writes `starship.toml`, and a file you wrote or
+edited yourself will not match, so in both cases it is left alone with a warning
+rather than deleted.
+
+Every rc file is checked, not just the one for your current `$SHELL`, in case
+you have switched shells since installing.
+
 ## Colours
 
 The wordmark is coloured column by column to reproduce the gradient from

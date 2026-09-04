@@ -14,6 +14,7 @@ OMA_DIR="$REPO_DIR"
 OS="$(uname -s)"
 MARK_BEGIN="# >>> chronara-dotfiles >>>"
 MARK_END="# <<< chronara-dotfiles <<<"
+DRY_RUN=0
 
 say()  { printf '\033[1;38;5;205m[oma]\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[oma]\033[0m %s\n' "$1"; }
@@ -232,19 +233,105 @@ ZBLOCK
   fi
 }
 
+# ---- uninstall --------------------------------------------------------------
+# Two different jobs, and conflating them loses your edits:
+#   rc files  - we APPENDED a guarded block, so remove just that block and leave
+#               everything you have added since alone.
+#   configs   - we OVERWROTE the whole file, so put the .chrbak backup back if
+#               there is one, otherwise take our copy away.
+remove_block() {  # $1 = file
+  local rc="$1" tmp
+  [ -f "$rc" ] || return 0
+  grep -qF "$MARK_BEGIN" "$rc" 2>/dev/null || return 0
+  if [ "$DRY_RUN" = "1" ]; then say "would remove guarded block from $rc"; return 0; fi
+  tmp="$(mktemp)"
+  awk -v b="$MARK_BEGIN" -v e="$MARK_END" '
+    $0==b{skip=1} !skip{print} $0==e{skip=0}' "$rc" > "$tmp"
+  # the installer writes a blank line before the block; do not let repeated
+  # install/uninstall cycles pile those up at the end of the file
+  awk 'BEGIN{n=0} {lines[NR]=$0} END{ last=NR; while(last>0 && lines[last]~/^[[:space:]]*$/) last--; for(i=1;i<=last;i++) print lines[i] }' "$tmp" > "$tmp.2"
+  mv "$tmp.2" "$rc"; rm -f "$tmp"
+  say "removed guarded block from $rc"
+}
+
+restore_file() {  # $1 = a file we may have overwritten  $2 = our shipped copy
+  local f="$1" ours="$2"
+  if [ -e "$f.chrbak" ]; then
+    # a backup exists, so we definitely overwrote something: put it back
+    if [ "$DRY_RUN" = "1" ]; then say "would restore $f from $f.chrbak"; return 0; fi
+    mv "$f.chrbak" "$f"; say "restored $f from backup"
+    return 0
+  fi
+  [ -e "$f" ] || return 0
+  # No backup. Only delete it if it is byte-identical to what we ship, which is
+  # the only proof we put it there. --welcome-only never installs starship.toml
+  # or tmux.conf, so without this check an uninstall would delete a config the
+  # user wrote themselves.
+  if [ -n "$ours" ] && [ -e "$ours" ] && cmp -s "$f" "$ours"; then
+    if [ "$DRY_RUN" = "1" ]; then say "would remove $f"; return 0; fi
+    rm -f "$f"; say "removed $f"
+  else
+    warn "left $f alone: no backup and it does not match our copy (yours, or edited)"
+  fi
+}
+
+uninstall_user() {
+  # Every rc we might have touched, not just the one for the current $SHELL:
+  # you may have switched shells since installing.
+  local rc
+  for rc in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.bash_profile" "$HOME/.profile"; do
+    remove_block "$rc"
+  done
+  restore_file "$HOME/.config/chronara/welcome.sh" "$REPO_DIR/welcome.sh"
+  restore_file "$HOME/.config/starship.toml"        "$REPO_DIR/starship.toml"
+  restore_file "$HOME/.tmux.conf"                   "$REPO_DIR/tmux.conf"
+  if [ "$DRY_RUN" != "1" ] && [ -d "$HOME/.config/chronara" ]; then
+    rmdir "$HOME/.config/chronara" 2>/dev/null && say "removed empty ~/.config/chronara"
+  fi
+}
+
+uninstall_system() {
+  if [ "$(id -u)" != "0" ]; then warn "--system uninstall needs root; skipping system-wide files"; return; fi
+  local f
+  for f in /etc/profile.d/chronara-welcome.sh /etc/profile.d/chronara-prompt.sh; do
+    if [ -e "$f" ]; then
+      if [ "$DRY_RUN" = "1" ]; then say "would remove $f"; else rm -f "$f"; say "removed $f"; fi
+    fi
+  done
+  for f in /etc/zsh/zprofile /etc/zsh/zshrc /etc/bash.bashrc; do
+    remove_block "$f"
+  done
+  restore_file /etc/tmux.conf "$REPO_DIR/tmux.conf"
+  restore_file /usr/local/share/chronara/welcome.sh "$REPO_DIR/welcome.sh"
+  if [ -d /usr/local/share/chronara ]; then
+    if [ "$DRY_RUN" = "1" ]; then say "would remove /usr/local/share/chronara"
+    else rm -rf /usr/local/share/chronara; say "removed /usr/local/share/chronara"; fi
+  fi
+}
+
 usage() {
   cat <<EOF
 omarchy-dotfiles installer
 
-  ./install.sh                 full install for the current user
-                                               (Starship prompt + tmux + Omarchy banner)
-  ./install.sh --system        FULL install for ALL users (root),
-                                               via /etc/profile.d
-  ./install.sh --welcome-only  Omarchy banner only, no prompt changes
-  ./install.sh --preview       print the banner and exit, change nothing
+  ./install.sh                  full install for the current user
+                                    (Starship prompt + tmux + Omarchy banner)
+  ./install.sh --system         FULL install for ALL users (root), via /etc/profile.d
+  ./install.sh --welcome-only   banner only, no prompt changes
+  ./install.sh --preview        print the banner and exit, change nothing
 
-Hooks live between guard markers and existing files are backed up to *.chrbak
-once, so re-running is safe and never duplicates a block.
+  ./install.sh --uninstall      remove the banner and hooks for the current user
+  ./install.sh --uninstall --system
+                                    also remove the system-wide files (root)
+  ./install.sh --dry-run --uninstall
+                                    show what an uninstall would touch, change nothing
+
+Re-running an install OVERWRITES in place: the banner file is replaced and the
+guarded rc block is rewritten, never appended twice. To switch between versions
+just run the one you want; you do not need to uninstall first.
+
+Uninstall removes only the guarded block from your rc files, so anything you
+added yourself is kept. Files that were overwritten wholesale (starship.toml,
+tmux.conf, the banner) are restored from their .chrbak backup when one exists.
 EOF
 }
 
@@ -255,16 +342,27 @@ preview() {
 }
 
 main() {
-  local system=0 welcome_only=0 a
+  local system=0 welcome_only=0 uninstall=0 a
   for a in "$@"; do
     case "$a" in
       --system)       system=1 ;;
       --welcome-only) welcome_only=1 ;;
+      --uninstall)    uninstall=1 ;;
+      --dry-run)      DRY_RUN=1 ;;
       --preview)      preview; return 0 ;;
       -h|--help)      usage; return 0 ;;
       *)              warn "unknown option: $a"; usage; return 2 ;;
     esac
   done
+
+  if [ "$uninstall" = "1" ]; then
+    [ "$DRY_RUN" = "1" ] && say "DRY RUN: nothing will be changed"
+    say "uninstalling (system=$system)"
+    uninstall_user
+    [ "$system" = "1" ] && uninstall_system
+    say "done. open a new login shell to confirm the banner is gone."
+    return 0
+  fi
 
   say "installing omarchy-dotfiles on $OS (welcome-only=$welcome_only system=$system)"
   detect_omarchy
