@@ -99,6 +99,44 @@ install_welcome_file() {
     cp "$REPO_DIR/$art" "$HOME/.config/chronara/$art"
   done
   say "installed wordmark art (logo.txt 81 cols, logo-narrow.txt 64 cols)"
+
+  backup "$HOME/.config/chronara/gradient.awk"
+  cp "$REPO_DIR/lib/gradient.awk" "$HOME/.config/chronara/gradient.awk"
+
+  # fastfetch reads the logo with "file-raw", which prints the file byte for
+  # byte; that is what keeps the per-column gradient. So bake a coloured copy
+  # here rather than asking fastfetch to colour it, which it can only do a whole
+  # line at a time.
+  backup "$HOME/.config/chronara/config.jsonc"
+  cp "$REPO_DIR/fastfetch/config.jsonc" "$HOME/.config/chronara/config.jsonc"
+  local logo_src="$REPO_DIR/logo.txt"
+  [ -f "$HOME/.local/share/omarchy/logo.txt" ] && logo_src="$HOME/.local/share/omarchy/logo.txt"
+  if awk -v tc=1 -f "$REPO_DIR/lib/gradient.awk" "$logo_src" > "$HOME/.config/chronara/logo-color.txt" 2>/dev/null; then
+    say "baked coloured wordmark for fastfetch (from $(basename "$logo_src"))"
+  else
+    warn "could not bake the coloured wordmark; fastfetch will show it plain"
+  fi
+
+  install_bins
+}
+
+# ---- 3c. command line tools -------------------------------------------------
+# ~/.local/bin because it needs no root and is already on PATH for most setups;
+# the prompt hook puts it there too.
+install_bins() {
+  mkdir -p "$HOME/.local/bin"
+  local f
+  for f in "$REPO_DIR/bin/"*; do
+    [ -f "$f" ] || continue
+    cp "$f" "$HOME/.local/bin/$(basename "$f")"
+    chmod +x "$HOME/.local/bin/$(basename "$f")"
+  done
+  say "installed omarchy-fetch and fit-logo to ~/.local/bin"
+  if command -v fastfetch >/dev/null 2>&1; then
+    say "fastfetch found: omarchy-fetch will use it with the Chronara config"
+  else
+    warn "fastfetch not installed; omarchy-fetch falls back to its built-in renderer"
+  fi
 }
 
 # ---- 3b. prompt + tmux config (full install only) ---------------------------
@@ -300,6 +338,18 @@ uninstall_user() {
   restore_file "$HOME/.config/chronara/welcome.sh"     "$REPO_DIR/welcome.sh"
   restore_file "$HOME/.config/chronara/logo.txt"        "$REPO_DIR/logo.txt"
   restore_file "$HOME/.config/chronara/logo-narrow.txt" "$REPO_DIR/logo-narrow.txt"
+  restore_file "$HOME/.config/chronara/gradient.awk"    "$REPO_DIR/lib/gradient.awk"
+  restore_file "$HOME/.config/chronara/config.jsonc"    "$REPO_DIR/fastfetch/config.jsonc"
+  # generated at install time, so there is no shipped copy to compare against
+  if [ -f "$HOME/.config/chronara/logo-color.txt" ]; then
+    if [ "$DRY_RUN" = "1" ]; then say "would remove $HOME/.config/chronara/logo-color.txt"
+    else rm -f "$HOME/.config/chronara/logo-color.txt"; say "removed $HOME/.config/chronara/logo-color.txt"; fi
+  fi
+  local b
+  for b in "$REPO_DIR/bin/"*; do
+    [ -f "$b" ] || continue
+    restore_file "$HOME/.local/bin/$(basename "$b")" "$b"
+  done
   restore_file "$HOME/.config/starship.toml"        "$REPO_DIR/starship.toml"
   restore_file "$HOME/.tmux.conf"                   "$REPO_DIR/tmux.conf"
   if [ "$DRY_RUN" != "1" ] && [ -d "$HOME/.config/chronara" ]; then
@@ -339,6 +389,9 @@ omarchy-dotfiles installer
   ./install.sh --preview        print the banner and exit, change nothing
   ./install.sh --try            open a throwaway shell with the full setup
                                 (banner + prompt), deleted when you exit
+
+Also installs omarchy-fetch to ~/.local/bin: a fastfetch profile in the Omarchy
+wordmark and gradient, with a built-in fallback where fastfetch is absent.
 
   ./install.sh --uninstall      remove the banner and hooks for the current user
   ./install.sh --uninstall --system

@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+# omarchy-fetch - a neofetch in Omarchy's own wordmark and gradient.
+#
+# Stacked rather than side by side on purpose. The wordmark needs about 64
+# columns to stay legible; squeezed to the ~40 a side-by-side layout leaves it,
+# the letters collapse into noise. Keeping the real font readable is the point
+# of this, so the art sits on top and the facts sit underneath.
+#
+# Arch and Omarchy ship fastfetch, and neofetch is archived upstream, so this
+# hands off to fastfetch with a Chronara config wherever fastfetch exists. The
+# shell renderer below is the fallback for boxes without it, and can be forced
+# with --builtin.
+#
+# Usage: omarchy-fetch [--builtin] [--no-logo] [--narrow] [--plain]
+set -u
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+no_logo=0; force_narrow=0; plain=0; builtin=0
+for a in "$@"; do
+  case "$a" in
+    --builtin) builtin=1 ;;
+    --no-logo) no_logo=1 ;;
+    --narrow)  force_narrow=1 ;;
+    --plain)   plain=1 ;;
+    -h|--help) printf 'usage: omarchy-fetch [--builtin] [--no-logo] [--narrow] [--plain]\n'; exit 0 ;;
+    *) printf 'unknown option: %s\n' "$a" >&2; exit 2 ;;
+  esac
+done
+
+# ---- where our data files live ----------------------------------------------
+SHARE=""
+for d in "$SELF_DIR/.." "$HOME/.config/chronara" /usr/local/share/chronara; do
+  [ -f "$d/logo.txt" ] && { SHARE="$d"; break; }
+done
+GRAD=""
+for d in "$SELF_DIR/../lib" "$HOME/.config/chronara" /usr/local/share/chronara; do
+  [ -f "$d/gradient.awk" ] && { GRAD="$d/gradient.awk"; break; }
+done
+
+# ---- hand off to fastfetch where it exists ----------------------------------
+FF_CONFIG=""
+for d in "$SELF_DIR/../fastfetch" "$HOME/.config/chronara" /usr/local/share/chronara; do
+  [ -f "$d/config.jsonc" ] && { FF_CONFIG="$d/config.jsonc"; break; }
+done
+
+# The config points at a pre-coloured logo, because fastfetch's "file-raw" is
+# what preserves the per-column gradient. Bake it now if the install did not.
+ensure_colour_logo() {
+  local out="$HOME/.config/chronara/logo-color.txt" src=""
+  [ -s "$out" ] && return 0
+  [ -n "$GRAD" ] || return 1
+  for c in "${CHRONARA_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
+           "${SHARE:+$SHARE/logo.txt}" "${SHARE:+$SHARE/logo-narrow.txt}"; do
+    [ -n "$c" ] && [ -f "$c" ] && { src="$c"; break; }
+  done
+  [ -n "$src" ] || return 1
+  mkdir -p "$HOME/.config/chronara" || return 1
+  awk -v tc=1 -f "$GRAD" "$src" > "$out" 2>/dev/null || return 1
+}
+
+if [ "$builtin" = "0" ] && [ "$no_logo" = "0" ] && command -v fastfetch >/dev/null 2>&1 && [ -n "$FF_CONFIG" ]; then
+  ensure_colour_logo
+  exec fastfetch --config "$FF_CONFIG"
+fi
+
+cols=${COLUMNS:-0}
+case "$cols" in ''|*[!0-9]*) cols=0 ;; esac
+[ "$cols" -lt 1 ] && cols=$(tput cols 2>/dev/null || echo 80)
+
+if [ -t 1 ] && [ "$plain" = "0" ]; then
+  TC=0; [ "${COLORTERM:-}" = "truecolor" ] || [ "${COLORTERM:-}" = "24bit" ] && TC=1
+  if [ "$TC" = "1" ]; then
+    PK=$'\033[38;2;255;95;191m'; VI=$'\033[38;2;199;125;245m'; BL=$'\033[38;2;127;184;255m'
+  else
+    PK=$'\033[38;5;205m'; VI=$'\033[38;5;141m'; BL=$'\033[38;5;111m'
+  fi
+  D=$'\033[38;5;245m'; B=$'\033[1m'; R=$'\033[0m'
+else
+  TC=0; PK=; VI=; BL=; D=; B=; R=
+fi
+
+# ---- facts ------------------------------------------------------------------
+have() { command -v "$1" >/dev/null 2>&1; }
+
+os_name() {
+  if have sw_vers; then printf '%s %s' "$(sw_vers -productName)" "$(sw_vers -productVersion)"
+  elif [ -r /etc/os-release ]; then (. /etc/os-release; printf '%s' "${PRETTY_NAME:-Linux}")
+  else uname -s; fi
+}
+host_model() {
+  if have sw_vers; then sysctl -n hw.model 2>/dev/null
+  elif [ -r /sys/devices/virtual/dmi/id/product_name ]; then
+    cat /sys/devices/virtual/dmi/id/product_name 2>/dev/null
+  fi
+}
+pkg_count() {
+  if have pacman; then printf '%s (pacman)' "$(pacman -Qq 2>/dev/null | wc -l | tr -d ' ')"
+  elif have dpkg-query; then printf '%s (dpkg)' "$(dpkg-query -f '.\n' -W 2>/dev/null | wc -l | tr -d ' ')"
+  elif have rpm; then printf '%s (rpm)' "$(rpm -qa 2>/dev/null | wc -l | tr -d ' ')"
+  elif have brew; then printf '%s (brew)' "$(ls -1 "$(brew --prefix)/Cellar" 2>/dev/null | wc -l | tr -d ' ')"
+  fi
+}
+wm_name() {
+  # Omarchy is Hyprland, but do not assume it: report what is actually running.
+  if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+    if have hyprctl; then printf 'Hyprland %s' "$(hyprctl version 2>/dev/null | awk 'NR==1{print $2; exit}')"
+    else printf 'Hyprland'; fi
+  elif [ -n "${XDG_CURRENT_DESKTOP:-}" ]; then printf '%s' "$XDG_CURRENT_DESKTOP"
+  elif [ -n "${DESKTOP_SESSION:-}" ]; then printf '%s' "$DESKTOP_SESSION"
+  elif have sw_vers; then printf 'Quartz Compositor'
+  fi
+}
+term_name() {
+  [ -n "${TERM_PROGRAM:-}" ] && { printf '%s' "$TERM_PROGRAM"; return; }
+  [ -n "${TMUX:-}" ] && { printf 'tmux'; return; }
+  printf '%s' "${TERM:-unknown}"
+}
+cpu_name() {
+  if have sw_vers; then sysctl -n machdep.cpu.brand_string 2>/dev/null
+  elif [ -r /proc/cpuinfo ]; then
+    awk -F': ' '/^model name/{print $2; exit} /^Model/{print $2; exit}' /proc/cpuinfo
+  fi
+}
+gpu_name() {
+  if have nvidia-smi; then nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1
+  elif have lspci; then lspci 2>/dev/null | awk -F': ' '/VGA|3D controller/{print $2; exit}'
+  elif have sw_vers; then printf 'integrated'; fi
+}
+mem_use() {
+  if [ -r /proc/meminfo ]; then
+    awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{printf "%.1f GiB / %.1f GiB", (t-a)/1048576, t/1048576}' /proc/meminfo
+  elif have sw_vers; then
+    local t; t=$(sysctl -n hw.memsize 2>/dev/null)
+    [ -n "$t" ] && awk -v t="$t" 'BEGIN{printf "%.0f GiB total", t/1073741824}'
+  fi
+}
+disk_use() { df -h / 2>/dev/null | awk 'NR==2{printf "%s / %s (%s)", $3, $2, $5}'; }
+uptime_s() {
+  # uptime -p is GNU-only. On macOS it errors, and piping the error into sed
+  # still exits 0, so a plain || fallback never fires. Test the value instead.
+  local u
+  u=$(uptime -p 2>/dev/null | sed 's/^up //')
+  [ -n "$u" ] || u=$(uptime 2>/dev/null | sed 's/.*up //; s/,[[:space:]]*[0-9]* user.*//; s/^[[:space:]]*//')
+  printf '%s' "$u"
+}
+omarchy_v() {
+  if have omarchy-version; then omarchy-version 2>/dev/null | head -1
+  elif [ -d "$HOME/.local/share/omarchy/.git" ]; then
+    git -C "$HOME/.local/share/omarchy" describe --tags --always 2>/dev/null
+  elif [ -d "$HOME/.local/share/omarchy" ]; then printf 'installed'
+  else printf 'not detected'; fi
+}
+ip4() {
+  local dev a
+  if have ip; then
+    ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1);exit}}'
+    return
+  fi
+  have ipconfig || return 0
+  # The default route can sit on a utun (Tailscale, VPN), which ipconfig has no
+  # address for, so fall back to the usual physical interfaces rather than
+  # printing nothing.
+  dev=$(route -n get default 2>/dev/null | awk '/interface:/{print $2;exit}')
+  for i in "$dev" en0 en1; do
+    [ -n "$i" ] || continue
+    a=$(ipconfig getifaddr "$i" 2>/dev/null)
+    [ -n "$a" ] && { printf '%s' "$a"; return; }
+  done
+}
+ts_ip() {
+  if have tailscale; then tailscale ip -4 2>/dev/null | head -1
+  elif [ -x /Applications/Tailscale.app/Contents/MacOS/Tailscale ]; then
+    /Applications/Tailscale.app/Contents/MacOS/Tailscale ip -4 2>/dev/null | head -1
+  fi
+}
+
+# ---- wordmark ---------------------------------------------------------------
+if [ "$no_logo" = "0" ]; then
+  art=""
+  if [ "$force_narrow" = "1" ]; then
+    [ -n "$SHARE" ] && [ -f "$SHARE/logo-narrow.txt" ] && art="$SHARE/logo-narrow.txt"
+  else
+    for cand in "${CHRONARA_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
+                "${SHARE:+$SHARE/logo.txt}" "${SHARE:+$SHARE/logo-narrow.txt}"; do
+      [ -n "$cand" ] && [ -f "$cand" ] || continue
+      w=$(awk 'BEGIN{gw=length("█")}{n=length($0);i=1;c=0;while(i<=n){if(substr($0,i,1)==" ")i+=1;else i+=gw;c++} if(c>m)m=c}END{print m+0}' "$cand" 2>/dev/null)
+      [ -n "$w" ] && [ "$w" -gt 0 ] && [ "$w" -le "$cols" ] && { art="$cand"; break; }
+    done
+  fi
+  printf '\n'
+  if [ -n "$art" ]; then
+    if [ -n "$GRAD" ] && [ -n "$R" ]; then awk -v tc="$TC" -f "$GRAD" "$art"; else cat "$art"; fi
+  fi
+  printf '\n'
+fi
+
+# ---- info -------------------------------------------------------------------
+row() { [ -n "${2:-}" ] && printf '   %s%-11s%s %s\n' "$D" "$1" "$R" "$2"; }
+
+printf '   %s%s%s%s@%s%s%s\n' "$B" "$PK" "$(id -un)" "$R" "$B" "$(hostname 2>/dev/null | cut -d. -f1)" "$R"
+printf '   %s%s%s\n' "$D" "$(printf '%.0s-' $(seq 1 40))" "$R"
+row "os"        "$(os_name) ($(uname -m))"
+row "host"      "$(host_model)"
+row "kernel"    "$(uname -r)"
+row "uptime"    "$(uptime_s)"
+row "packages"  "$(pkg_count)"
+row "shell"     "$(basename "${SHELL:-sh}")"
+row "wm"        "$(wm_name)"
+row "terminal"  "$(term_name)"
+row "cpu"       "$(cpu_name)"
+row "gpu"       "$(gpu_name)"
+row "memory"    "$(mem_use)"
+row "disk"      "$(disk_use)"
+printf '   %s%-11s%s %s%s%s\n' "$D" "omarchy" "$R" "$PK" "$(omarchy_v)" "$R"
+row "ipv4"      "$(ip4)"
+[ -n "$(ts_ip)" ] && printf '   %s%-11s%s %s%s%s\n' "$D" "tailscale" "$R" "$VI" "$(ts_ip)" "$R"
+
+# ---- colour bar: the same gradient the wordmark uses ------------------------
+if [ -n "$R" ]; then
+  printf '\n   '
+  awk -v tc="$TC" 'BEGIN{
+    n=32
+    for (i=0;i<n;i++) {
+      t=i/(n-1)
+      if (t<0.5) { u=t/0.5;       r=int(255+(199-255)*u+0.5); g=int( 95+(125- 95)*u+0.5); b=int(191+(245-191)*u+0.5) }
+      else       { u=(t-0.5)/0.5; r=int(199+(127-199)*u+0.5); g=int(125+(184-125)*u+0.5); b=int(245+(255-245)*u+0.5) }
+      if (tc=="1") printf "\033[48;2;%d;%d;%dm ", r,g,b
+      else         printf "\033[48;5;%dm ", 16+36*int(r*5/255+0.5)+6*int(g*5/255+0.5)+int(b*5/255+0.5)
+    }
+    printf "\033[0m\n"
+  }'
+fi
+printf '\n'

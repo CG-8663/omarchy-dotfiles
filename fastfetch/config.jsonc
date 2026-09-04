@@ -1,0 +1,73 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+  // The wordmark goes ON TOP, not to the left. It needs roughly 64 columns to
+  // stay legible, and a left-hand logo plus the info column would push the whole
+  // thing past 130 columns. "file-raw" prints the file byte for byte, which is
+  // what preserves the per-column gradient that install.sh bakes into it.
+  "logo": {
+    "type": "file-raw",
+    "source": "~/.config/chronara/logo-color.txt",
+    "position": "top",
+    "padding": { "top": 1, "left": 0 }
+  },
+
+  "modules": [
+    "break",
+    { "type": "custom", "format": "\u001b[90m┌──────────────────────Hardware──────────────────────┐" },
+    { "type": "host",   "key": " PC",  "keyColor": "38;2;255;95;191" },
+    { "type": "cpu",    "key": "│ ├",  "showPeCoreCount": true, "keyColor": "38;2;255;95;191" },
+    { "type": "gpu",    "key": "│ ├",  "detectionMethod": "pci", "keyColor": "38;2;255;95;191" },
+    { "type": "display","key": "│ ├󱄄",  "keyColor": "38;2;255;95;191" },
+    { "type": "disk",   "key": "│ ├󰋊",  "keyColor": "38;2;255;95;191" },
+    { "type": "memory", "key": "│ ├",  "keyColor": "38;2;255;95;191" },
+    { "type": "swap",   "key": "└ └󰓡 ", "keyColor": "38;2;255;95;191" },
+    { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
+
+    "break",
+    { "type": "custom", "format": "\u001b[90m┌──────────────────────Software──────────────────────┐" },
+    {
+      "type": "command",
+      "key": " OS",
+      "keyColor": "38;2;199;125;245",
+      // Guarded on purpose: this config also runs on Arch boxes that are not
+      // Omarchy, and on macOS. An unguarded omarchy-version prints an error row
+      // there instead of a fact.
+      "text": "if command -v omarchy-version >/dev/null 2>&1; then echo \"Omarchy $(omarchy-version)\"; elif [ -r /etc/os-release ]; then . /etc/os-release; echo \"$PRETTY_NAME\"; else uname -s; fi"
+    },
+    {
+      "type": "command",
+      "key": "│ ├󰘬",
+      "keyColor": "38;2;199;125;245",
+      "text": "command -v omarchy-version-branch >/dev/null 2>&1 && omarchy-version-branch || echo '-'"
+    },
+    { "type": "kernel",       "key": "│ ├", "keyColor": "38;2;199;125;245" },
+    { "type": "wm",           "key": "│ ├", "keyColor": "38;2;199;125;245" },
+    { "type": "terminal",     "key": "│ ├", "keyColor": "38;2;199;125;245" },
+    { "type": "packages",     "key": "│ ├󰏖", "keyColor": "38;2;199;125;245" },
+    { "type": "terminalfont", "key": "└ └", "keyColor": "38;2;199;125;245" },
+    { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
+
+    "break",
+    { "type": "custom", "format": "\u001b[90m┌──────────────────────Chronara──────────────────────┐" },
+    {
+      "type": "command",
+      "key": "󰍎 Location",
+      "keyColor": "38;2;127;184;255",
+      "text": "cat /etc/chronara-location 2>/dev/null || cat \"$HOME/.config/chronara/location\" 2>/dev/null || echo 'unset'"
+    },
+    { "type": "localip", "key": "│ ├󰩠", "keyColor": "38;2;127;184;255" },
+    {
+      "type": "command",
+      "key": "│ ├󰖟",
+      "keyColor": "38;2;127;184;255",
+      "text": "command -v tailscale >/dev/null 2>&1 && tailscale ip -4 2>/dev/null | head -1 || echo '-'"
+    },
+    { "type": "uptime",  "key": "└ └󱫐", "keyColor": "38;2;127;184;255" },
+    { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
+
+    "break",
+    { "type": "colors", "paddingLeft": 2, "symbol": "circle" },
+    "break"
+  ]
+}

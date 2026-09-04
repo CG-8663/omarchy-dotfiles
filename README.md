@@ -145,6 +145,49 @@ rather than deleted.
 Every rc file is checked, not just the one for your current `$SHELL`, in case
 you have switched shells since installing.
 
+## omarchy-fetch
+
+A system fetch in the same wordmark and gradient, installed to `~/.local/bin`:
+
+```sh
+omarchy-fetch
+```
+
+It is a **fastfetch** profile, not another fetch tool. Arch and Omarchy ship
+fastfetch, neofetch is archived upstream, and fastfetch already reads far more
+of the system than a shell script sensibly can. `omarchy-fetch` hands off to it
+with `fastfetch --config ~/.config/chronara/config.jsonc`, and only falls back
+to its own renderer where fastfetch is absent, such as a bare server or a Mac.
+
+```sh
+omarchy-fetch --builtin   # force the fallback renderer
+omarchy-fetch --no-logo   # facts only
+omarchy-fetch --narrow    # 64-column wordmark
+omarchy-fetch --plain     # no colour, for piping
+```
+
+The config mirrors the section layout of Omarchy's own fastfetch config
+(Hardware / Software, box-drawing rules, Nerd Font keys) and adds a Chronara
+section with location, local IP and Tailscale address. Key colours use the three
+gradient stops instead of green.
+
+Two things it does differently to Omarchy's:
+
+- **The logo sits on top, not to the left.** The wordmark needs about 64 columns
+  to stay legible; beside an info column the whole thing runs past 130.
+- **The logo is `file-raw`, not `file`.** fastfetch's `file` type colours a logo
+  a line at a time, which cannot express a horizontal gradient. `file-raw` prints
+  the file byte for byte, so `install.sh` bakes a pre-coloured
+  `~/.config/chronara/logo-color.txt` and fastfetch just emits it.
+
+It writes its config to `~/.config/chronara/`, never to `~/.config/fastfetch/`,
+so your own fastfetch setup and Omarchy's are both left alone. To make it your
+default fetch instead, alias it:
+
+```sh
+alias fetch=omarchy-fetch
+```
+
 ## The wordmark
 
 This is Omarchy's own wordmark, not a figlet approximation of it. Upstream keeps
