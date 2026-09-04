@@ -98,6 +98,8 @@ Until then, this repo installs it for you.
 
 ## Credits
 
+- **omarchy-dotfiles**, the shell setup that packages and installs this font, is
+  by **James Tervit**.
 - **Omarchy** is by [DHH](https://dhh.dk) and 37signals: <https://omarchy.org>
 - **Delta Corps Priest 1**, the FIGlet font the letterforms grew out of, is by
   CoSMiC cHiLD

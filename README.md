@@ -328,6 +328,9 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
 
 ## Credits
 
+- **omarchy-dotfiles** is by **James Tervit**: the dotfiles, installer, login
+  banner, fetch configs and terminal rendering that make the Omarchy wordmark
+  a working shell setup, built on Mark Cuda's Omarchy Font.
 - **Omarchy** is by [DHH](https://dhh.dk) and 37signals:
   [omarchy.org](https://omarchy.org) /
   [basecamp/omarchy](https://github.com/basecamp/omarchy).
