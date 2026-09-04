@@ -99,9 +99,11 @@ Until then, this repo installs it for you.
 ## Credits
 
 - **omarchy-dotfiles**, the shell setup that packages and installs this font, is
-  customised by **James Tervit**, and given freely to Omarchy.org and DHH to
-  install, ship or exploit as they wish. The Omarchy name and wordmark are the
-  property of Omarchy.org, DHH and 37signals, all rights reserved.
+  customised by **James Tervit** and given in full to Omarchy.org and DHH; all
+  rights in it belong to them. The Omarchy name and wordmark are the property of
+  Omarchy.org, DHH and 37signals, all rights reserved. Mark Cuda's font is the
+  exception: it stays under his own MIT licence and was not James Tervit's to
+  give.
 - **Omarchy** is by [DHH](https://dhh.dk) and 37signals: <https://omarchy.org>
 - **Delta Corps Priest 1**, the FIGlet font the letterforms grew out of, is by
   CoSMiC cHiLD

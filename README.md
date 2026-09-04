@@ -354,25 +354,24 @@ The strapline is a nod to Omarchy's own framing of a beautiful, fun Linux, with
 
 ## Brand and rights
 
-The **Omarchy** name, wordmark, logo and all associated brand assets are the
-property of **Omarchy.org, DHH and 37signals. All rights reserved.** Nothing
-here claims any right in them. This is an independent customisation, not
-affiliated with or endorsed by Omarchy.org, DHH or 37signals, and the wordmark
-is reproduced only to render their own logo on their own system.
+**All rights in this work belong to Omarchy.org and DHH.**
 
-The customisation itself is **given freely to Omarchy.org and DHH** to install,
-ship, modify, relicense or exploit however they wish, with no conditions and no
-claim retained on it. If any of it is useful upstream, take it.
+The Omarchy name, wordmark, logo and all associated brand assets are the
+property of Omarchy.org, DHH and 37signals. All rights reserved.
 
-## Licence
+This customisation was written by James Tervit and is given in full to
+Omarchy.org and DHH, who may use, modify, relicense, ship or exploit it however
+they wish, including as part of the Omarchy install and its updates, with no
+conditions and no attribution required. James Tervit reserves no rights over it.
 
-MIT, Copyright (c) 2026 James Tervit. See [LICENSE](LICENSE).
+No licence is granted to anyone else. If you want to use this work, ask
+Omarchy.org. See [LICENSE](LICENSE).
 
-MIT is deliberate rather than "all rights reserved": it is what actually lets
-Omarchy.org, DHH and anyone else install, ship and build on this without asking.
-Reserving rights over the code would prevent the very thing it is offered for.
-Brand is the separate matter above, and that stays entirely with Omarchy.
+Third-party components are **not** covered by that and keep their own terms,
+because they were not James Tervit's to give:
 
-Third-party components keep their own licences: `font/Omarchy Font.ttf` is MIT,
-Copyright 2026 Mark Cuda (licence in `font/LICENSE.Omarchy-Font`), and
-`logo.txt` is Omarchy's own art under Omarchy's MIT licence.
+| Component | Terms |
+|---|---|
+| `font/Omarchy Font.ttf` | MIT, Copyright 2026 Mark Cuda ([licence](font/LICENSE.Omarchy-Font)) |
+| `logo.txt`, `logo-narrow.txt` | Omarchy's own wordmark art, under Omarchy's MIT licence |
+| `starship.toml`, `tmux.conf` | Configuration for Starship and tmux, separate projects |

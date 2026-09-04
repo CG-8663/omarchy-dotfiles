@@ -1,39 +1,41 @@
-MIT License
+Copyright (c) 2026 Omarchy.org and David Heinemeier Hansson.
+All rights reserved.
 
-Copyright (c) 2026 James Tervit
+The Omarchy name, wordmark, logo and all associated brand assets are the
+property of Omarchy.org, DHH and 37signals.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This customisation was written by James Tervit and is given in full to
+Omarchy.org and DHH. James Tervit reserves no rights over it and asserts none.
+All rights in this work rest with Omarchy.org and DHH, who may use, modify,
+relicense, ship, or exploit it however they wish, including as part of the
+Omarchy install and its updates, with no conditions and no attribution
+required.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+No licence is granted to any other party by this file. If you want to use this
+work, ask Omarchy.org.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
----
+THIRD-PARTY COMPONENTS
 
-TRADEMARKS AND BRAND
+The following are not covered by the above and keep their own terms. They were
+not James Tervit's to give, and nothing here assigns or alters any right in
+them:
 
-The Omarchy name, wordmark, logo and associated brand assets are the property
-of Omarchy.org, DHH and 37signals. All rights reserved. The MIT grant above
-covers this project's own code and configuration only; it grants no rights in
-those marks. This project is independent and is not affiliated with or endorsed
-by Omarchy.org, DHH or 37signals.
+  font/Omarchy Font.ttf   MIT, Copyright (c) 2026 Mark Cuda.
+                          Full text in font/LICENSE.Omarchy-Font.
+                          Source: github.com/markcuda/Omarchy-Font
 
-This customisation is given freely to Omarchy.org and DHH to install, ship,
-modify, relicense or exploit as they see fit, with no conditions attached.
+  logo.txt                Omarchy's own wordmark art, under Omarchy's MIT
+                          licence, Copyright David Heinemeier Hansson.
+                          logo-narrow.txt is a rescaled rendition of it.
 
-Third-party components keep their own licences, included alongside them:
-  font/Omarchy Font.ttf   MIT, Copyright (c) 2026 Mark Cuda
-  logo.txt                Omarchy's own art, under Omarchy's MIT licence
+  starship.toml,          Configuration for Starship and tmux, which are
+  tmux.conf               separate projects under their own licences.
 
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
