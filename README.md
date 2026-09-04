@@ -6,6 +6,17 @@ card telling you which machine you just landed on.
 
 ![omarchy-dotfiles login banner](docs/banner.svg)
 
+> ### The wordmark here is [Omarchy Font](https://github.com/markcuda/Omarchy-Font) by [Mark Cuda](https://x.com/therealmc92)
+>
+> The Omarchy wordmark as a real, installable TTF. It ships with this install, and
+> everything you see below is built on it.
+>
+> **Mark is actively looking for feedback to improve the font.** If you use it,
+> go and tell him what works and what does not:
+> **[github.com/markcuda/Omarchy-Font](https://github.com/markcuda/Omarchy-Font)**
+> (issues, PRs and a [live specimen](https://tinker.markcuda.com/omarchy-font/))
+
+
 <details>
 <summary>Same thing as plain text</summary>
 
@@ -244,6 +255,11 @@ covers GUI, web and anything else that takes a font.
 
 Full write-up, including the case for Omarchy shipping it as part of the install
 and updates: **[docs/OMARCHY-FONT.md](docs/OMARCHY-FONT.md)**.
+
+Feedback on the font goes upstream, not here:
+[github.com/markcuda/Omarchy-Font](https://github.com/markcuda/Omarchy-Font).
+Mark is actively improving it and wants to hear how it behaves in the wild, so
+if a glyph looks wrong at your size or in your terminal, tell him there.
 
 ## The wordmark
 

@@ -7,6 +7,11 @@ block-built letters of the logo.
 **Specimen and live preview:** <https://tinker.markcuda.com/omarchy-font/>
 **Licence:** MIT, Copyright (c) 2026 Mark Cuda
 
+**Mark is actively looking for feedback to improve the font.** If you install it,
+open an issue or a PR at
+[github.com/markcuda/Omarchy-Font](https://github.com/markcuda/Omarchy-Font)
+rather than here, so it reaches the person who can act on it.
+
 A copy is vendored here at [`font/Omarchy Font.ttf`](../font/Omarchy%20Font.ttf)
 with its licence alongside it, so the install works offline and pins a known
 version. Upstream is the place to get the newest one.
