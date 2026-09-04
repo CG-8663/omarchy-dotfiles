@@ -4,6 +4,11 @@ A login banner and CLI layout for [Omarchy](https://omarchy.org): the Omarchy
 wordmark in its own pink-to-blue gradient, a strapline, and a compact identity
 card telling you which machine you just landed on.
 
+![omarchy-dotfiles login banner](docs/banner.svg)
+
+<details>
+<summary>Same thing as plain text</summary>
+
 ```
                  ▄▄▄
  ▄█████▄    ▄███████████▄    ▄███████   ▄███████   ▄███████   ▄█   █▄    ▄█   █▄
@@ -17,7 +22,7 @@ card telling you which machine you just landed on.
                                        ███   █▀
 
    Welcome to A Changing World with Omarchy
-   Welcome to the Beautiful, Fun & Agentic Linux   @DHH
+   and to the Beautiful, Fun & Agentic Linux   @DHH
 
    login      you@workstation
    location   Studio, London
@@ -28,6 +33,9 @@ card telling you which machine you just landed on.
    tailscale  100.x.y.z
    uptime     3 hours, 12 minutes
 ```
+
+</details>
+
 
 Ships a Starship prompt and a tmux config alongside it, so a fresh box looks and
 behaves the same as every other one you own.

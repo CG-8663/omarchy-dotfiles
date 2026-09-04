@@ -221,7 +221,7 @@ else
 ART
 fi
 printf '\n   %s%sWelcome to A Changing World with Omarchy%s\n' "$B" "$PK" "$R"
-printf '   %sWelcome to the Beautiful, Fun & Agentic Linux%s   %s@DHH%s\n\n' "$VI" "$R" "$BL" "$R"
+printf '   %sand to the Beautiful, Fun & Agentic Linux%s   %s@DHH%s\n\n' "$VI" "$R" "$BL" "$R"
 
 printf '   %slogin%s      %s%s@%s%s\n'  "$D" "$R" "$G" "$_oma_user" "$_oma_host" "$R"
 printf '   %slocation%s   %s\n'         "$D" "$R" "$_oma_loc"
