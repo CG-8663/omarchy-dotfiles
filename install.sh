@@ -16,10 +16,25 @@ MARK_BEGIN="# >>> omarchy-dotfiles >>>"
 MARK_END="# <<< omarchy-dotfiles <<<"
 DRY_RUN=0
 FASTFETCH_DEFAULT=0
+ASSUME_YES=0
 WANT_FONT=1
 
 say()  { printf '\033[1;38;5;205m[oma]\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[oma]\033[0m %s\n' "$1"; }
+
+# Nothing that reaches the network or the package manager runs unasked. With no
+# terminal to ask on, the answer is no: an install that cannot prompt should skip
+# the step, not decide for you. --yes answers everything up front.
+confirm() {  # $1 = what is about to happen
+  [ "$ASSUME_YES" = "1" ] && return 0
+  if [ ! -t 0 ] && [ ! -r /dev/tty ]; then
+    warn "no terminal to confirm on, skipping: $1"
+    return 1
+  fi
+  printf '\033[1;38;5;205m[oma]\033[0m %s [y/N] ' "$1"
+  read -r _ans </dev/tty 2>/dev/null || return 1
+  case "$_ans" in y|Y|yes|YES) return 0 ;; *) say "skipped"; return 1 ;; esac
+}
 
 backup() {  # backup a path once if it exists and is not already backed up
   local f="$1"
@@ -49,13 +64,18 @@ install_starship() {
     return
   fi
   if [ "$OS" = "Darwin" ] && command -v brew >/dev/null 2>&1; then
-    say "installing starship via Homebrew"
+    confirm "install Starship with: brew install starship ?" || return 0
     brew install starship
   elif command -v pacman >/dev/null 2>&1; then
-    say "installing starship via pacman (Omarchy/Arch)"
+    confirm "install Starship with: sudo pacman -S starship ?" || return 0
     sudo pacman -S --needed --noconfirm starship
   else
-    say "installing starship via official script (-> ~/.local/bin, no sudo)"
+    warn "no package manager found; the fallback pipes a remote script into sh:"
+    warn "  curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin"
+    confirm "run that? (or install starship yourself and re-run)" || {
+      warn "continuing without Starship; the banner works, the prompt will not"
+      return 0
+    }
     mkdir -p "$HOME/.local/bin"
     curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b "$HOME/.local/bin"
   fi
@@ -68,7 +88,7 @@ install_font() {
     if brew list --cask font-fira-code-nerd-font >/dev/null 2>&1; then
       say "Nerd Font already installed"
     else
-      say "installing FiraCode Nerd Font"
+      confirm "install a Nerd Font with: brew install --cask font-fira-code-nerd-font ?" || return 0
       brew install --cask font-fira-code-nerd-font || warn "font install failed, continuing"
     fi
   elif command -v pacman >/dev/null 2>&1; then
@@ -76,7 +96,7 @@ install_font() {
     if pacman -Qq ttf-firacode-nerd >/dev/null 2>&1; then
       say "Nerd Font already installed"
     else
-      say "installing ttf-firacode-nerd"
+      confirm "install a Nerd Font with: sudo pacman -S ttf-firacode-nerd (about 47MB) ?" || return 0
       sudo pacman -S --needed --noconfirm ttf-firacode-nerd || warn "font install failed, continuing"
     fi
   else
@@ -307,7 +327,9 @@ install_system_welcome() {
 install_system_prompt() {
   [ "$(id -u)" = "0" ] || { warn "--system needs root; skipping system-wide prompt"; return; }
   if [ ! -x /usr/local/bin/starship ] && ! command -v starship >/dev/null 2>&1; then
-    say "installing starship system-wide (-> /usr/local/bin)"
+    warn "this pipes a remote script into sh as root:"
+    warn "  curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b /usr/local/bin"
+    confirm "run that as root?" || { warn "continuing without a system-wide prompt"; return 0; }
     curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b /usr/local/bin
   else
     say "starship already present"
@@ -454,6 +476,11 @@ omarchy-dotfiles installer
                                 (banner + prompt), deleted when you exit
 
   ./install.sh --no-font        skip installing the Omarchy Font TTF
+  ./install.sh --yes            answer yes to the install prompts (CI, scripting)
+
+Nothing that touches the network or the package manager runs without asking
+first. Without a terminal to ask on, those steps are skipped rather than
+assumed. Everything else only writes dotfiles.
   ./install.sh --fastfetch-default
                                 also replace ~/.config/fastfetch/config.jsonc
                                 (Omarchy ships its own; a backup is kept)
@@ -533,6 +560,7 @@ main() {
       --dry-run)      DRY_RUN=1 ;;
       --fastfetch-default) FASTFETCH_DEFAULT=1 ;;
       --no-font)      WANT_FONT=0 ;;
+      -y|--yes)       ASSUME_YES=1 ;;
       --preview)      preview; return 0 ;;
       --try)          try_shell; return 0 ;;
       -h|--help)      usage; return 0 ;;
