@@ -15,6 +15,7 @@ OS="$(uname -s)"
 MARK_BEGIN="# >>> chronara-dotfiles >>>"
 MARK_END="# <<< chronara-dotfiles <<<"
 DRY_RUN=0
+FASTFETCH_DEFAULT=0
 
 say()  { printf '\033[1;38;5;205m[oma]\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[oma]\033[0m %s\n' "$1"; }
@@ -117,7 +118,32 @@ install_welcome_file() {
     warn "could not bake the coloured wordmark; fastfetch will show it plain"
   fi
 
+  install_fetch_configs
   install_bins
+}
+
+# ---- 3d. fetch configs ------------------------------------------------------
+# neofetch goes to its DEFAULT path so that typing `neofetch` bare picks it up,
+# which is the whole point of it being the default. fastfetch does not: Omarchy
+# ships its own ~/.config/fastfetch/config.jsonc and quietly replacing it would
+# change the system fetch the user already has. Ours lives beside our own files
+# and omarchy-fetch points at it, unless --fastfetch-default is passed.
+install_fetch_configs() {
+  mkdir -p "$HOME/.config/neofetch"
+  local f
+  for f in config.conf omarchy.ascii omarchy-small.ascii; do
+    backup "$HOME/.config/neofetch/$f"
+    cp "$REPO_DIR/neofetch/$f" "$HOME/.config/neofetch/$f"
+  done
+  say "installed ~/.config/neofetch/config.conf (plain \`neofetch\` now uses it)"
+  command -v neofetch >/dev/null 2>&1 || warn "neofetch is not installed on this box yet"
+
+  if [ "${FASTFETCH_DEFAULT:-0}" = "1" ]; then
+    mkdir -p "$HOME/.config/fastfetch"
+    backup "$HOME/.config/fastfetch/config.jsonc"
+    cp "$REPO_DIR/fastfetch/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
+    say "installed ~/.config/fastfetch/config.jsonc (replaces Omarchy's; backup kept)"
+  fi
 }
 
 # ---- 3c. command line tools -------------------------------------------------
@@ -345,6 +371,10 @@ uninstall_user() {
     if [ "$DRY_RUN" = "1" ]; then say "would remove $HOME/.config/chronara/logo-color.txt"
     else rm -f "$HOME/.config/chronara/logo-color.txt"; say "removed $HOME/.config/chronara/logo-color.txt"; fi
   fi
+  restore_file "$HOME/.config/neofetch/config.conf"        "$REPO_DIR/neofetch/config.conf"
+  restore_file "$HOME/.config/neofetch/omarchy.ascii"      "$REPO_DIR/neofetch/omarchy.ascii"
+  restore_file "$HOME/.config/neofetch/omarchy-small.ascii" "$REPO_DIR/neofetch/omarchy-small.ascii"
+  restore_file "$HOME/.config/fastfetch/config.jsonc"      "$REPO_DIR/fastfetch/config.jsonc"
   local b
   for b in "$REPO_DIR/bin/"*; do
     [ -f "$b" ] || continue
@@ -390,7 +420,12 @@ omarchy-dotfiles installer
   ./install.sh --try            open a throwaway shell with the full setup
                                 (banner + prompt), deleted when you exit
 
-Also installs omarchy-fetch to ~/.local/bin: a fastfetch profile in the Omarchy
+  ./install.sh --fastfetch-default
+                                also replace ~/.config/fastfetch/config.jsonc
+                                (Omarchy ships its own; a backup is kept)
+
+Installs a neofetch config to ~/.config/neofetch/config.conf, so plain
+`neofetch` picks it up with no flag. Also installs omarchy-fetch to ~/.local/bin: a fastfetch profile in the Omarchy
 wordmark and gradient, with a built-in fallback where fastfetch is absent.
 
   ./install.sh --uninstall      remove the banner and hooks for the current user
@@ -462,6 +497,7 @@ main() {
       --welcome-only) welcome_only=1 ;;
       --uninstall)    uninstall=1 ;;
       --dry-run)      DRY_RUN=1 ;;
+      --fastfetch-default) FASTFETCH_DEFAULT=1 ;;
       --preview)      preview; return 0 ;;
       --try)          try_shell; return 0 ;;
       -h|--help)      usage; return 0 ;;

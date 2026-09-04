@@ -145,6 +145,29 @@ rather than deleted.
 Every rc file is checked, not just the one for your current `$SHELL`, in case
 you have switched shells since installing.
 
+## neofetch
+
+The install writes `~/.config/neofetch/config.conf`, which is the path neofetch
+reads on its own. Typing plain `neofetch` picks it up, no flag and no alias:
+
+```sh
+neofetch
+```
+
+Your existing config, if you had one, is kept as `config.conf.chrbak` and put
+back by `--uninstall`.
+
+neofetch always puts the logo to the **left** of the info column; unlike
+fastfetch there is no top position. The Omarchy wordmark is wide, so the config
+switches art on terminal width: the 64-column rendition at 118 columns or more,
+the 52-column one below that. `config.conf` is sourced as bash, so that is a
+plain shell conditional rather than a neofetch feature.
+
+neofetch colours art by substituting `${c1}`..`${c6}`, so it cannot do the
+per-column truecolor the login banner uses. The art files carry those markers in
+six horizontal bands, giving the same pink to blue sweep quantised to the six
+colours neofetch offers, mapped by `ascii_colors`.
+
 ## omarchy-fetch
 
 A system fetch in the same wordmark and gradient, installed to `~/.local/bin`:
@@ -153,11 +176,10 @@ A system fetch in the same wordmark and gradient, installed to `~/.local/bin`:
 omarchy-fetch
 ```
 
-It is a **fastfetch** profile, not another fetch tool. Arch and Omarchy ship
-fastfetch, neofetch is archived upstream, and fastfetch already reads far more
-of the system than a shell script sensibly can. `omarchy-fetch` hands off to it
-with `fastfetch --config ~/.config/chronara/config.jsonc`, and only falls back
-to its own renderer where fastfetch is absent, such as a bare server or a Mac.
+It is a front end, not another fetch tool. It uses whichever fetch the box
+actually has: **fastfetch** first with `--config ~/.config/chronara/config.jsonc`,
+then **neofetch**, which needs no flag because the install has already replaced
+its default config. Its own renderer is the fallback for boxes with neither.
 
 ```sh
 omarchy-fetch --builtin   # force the fallback renderer
@@ -180,12 +202,16 @@ Two things it does differently to Omarchy's:
   the file byte for byte, so `install.sh` bakes a pre-coloured
   `~/.config/chronara/logo-color.txt` and fastfetch just emits it.
 
-It writes its config to `~/.config/chronara/`, never to `~/.config/fastfetch/`,
-so your own fastfetch setup and Omarchy's are both left alone. To make it your
-default fetch instead, alias it:
+The fastfetch config goes to `~/.config/chronara/`, **not** to
+`~/.config/fastfetch/`. Omarchy ships its own fastfetch config there and quietly
+replacing it would change the system fetch you already have. neofetch is treated
+differently because you asked for it as the default, and because its stock config
+is not part of Omarchy.
+
+To take over fastfetch's default too:
 
 ```sh
-alias fetch=omarchy-fetch
+./install.sh --fastfetch-default   # backs up Omarchy's first
 ```
 
 ## The wordmark

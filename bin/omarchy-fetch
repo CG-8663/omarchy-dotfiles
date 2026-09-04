@@ -6,10 +6,10 @@
 # the letters collapse into noise. Keeping the real font readable is the point
 # of this, so the art sits on top and the facts sit underneath.
 #
-# Arch and Omarchy ship fastfetch, and neofetch is archived upstream, so this
-# hands off to fastfetch with a Chronara config wherever fastfetch exists. The
-# shell renderer below is the fallback for boxes without it, and can be forced
-# with --builtin.
+# Hands off to whichever fetch the box actually has: fastfetch first (what
+# Omarchy ships), then neofetch (still widely installed on Arch, and its default
+# config is replaced by the install). The shell renderer below is the fallback
+# for boxes with neither, and can be forced with --builtin.
 #
 # Usage: omarchy-fetch [--builtin] [--no-logo] [--narrow] [--plain]
 set -u
@@ -58,9 +58,16 @@ ensure_colour_logo() {
   awk -v tc=1 -f "$GRAD" "$src" > "$out" 2>/dev/null || return 1
 }
 
-if [ "$builtin" = "0" ] && [ "$no_logo" = "0" ] && command -v fastfetch >/dev/null 2>&1 && [ -n "$FF_CONFIG" ]; then
-  ensure_colour_logo
-  exec fastfetch --config "$FF_CONFIG"
+if [ "$builtin" = "0" ] && [ "$no_logo" = "0" ]; then
+  if command -v fastfetch >/dev/null 2>&1 && [ -n "$FF_CONFIG" ]; then
+    ensure_colour_logo
+    exec fastfetch --config "$FF_CONFIG"
+  fi
+  # neofetch reads ~/.config/neofetch/config.conf on its own, which the install
+  # has already replaced with ours, so no --config flag is needed here.
+  if command -v neofetch >/dev/null 2>&1 && [ -f "$HOME/.config/neofetch/config.conf" ]; then
+    exec neofetch
+  fi
 fi
 
 cols=${COLUMNS:-0}
