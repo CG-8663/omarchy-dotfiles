@@ -47,6 +47,7 @@ cd omarchy-dotfiles
 | `./install.sh --welcome-only` | Banner only, prompt untouched |
 | `./install.sh --preview` | Print the banner and exit, change nothing |
 | `./install.sh --try` | Open a throwaway shell with the full setup, deleted on exit |
+| `./install.sh --no-font` | Skip installing the Omarchy Font TTF |
 
 Existing files are backed up to `*.omabak` once, and every shell hook is written
 between guard markers, so re-running is safe and never duplicates a block.
@@ -214,11 +215,34 @@ To take over fastfetch's default too:
 ./install.sh --fastfetch-default   # backs up Omarchy's first
 ```
 
+## Omarchy Font
+
+The install also puts **[Omarchy Font](https://github.com/markcuda/Omarchy-Font)**
+on the box: the wordmark as a real TTF, so you can type in it anywhere a font
+works. 7 KB, MIT, by [Mark Cuda](https://x.com/therealmc92).
+
+```sh
+./install.sh            # includes the font
+./install.sh --no-font  # skip it
+```
+
+It goes to `~/.local/share/fonts` on Linux (then `fc-cache -f`) or
+`~/Library/Fonts` on macOS. A copy is vendored in `font/` so this works offline.
+
+The font and the terminal banner are two renderings of the same letterforms and
+are not interchangeable: a terminal draws text in its own monospace face and
+cannot switch face mid-line, so the banner stays as block art while the font
+covers GUI, web and anything else that takes a font.
+
+Full write-up, including the case for Omarchy shipping it as part of the install
+and updates: **[docs/OMARCHY-FONT.md](docs/OMARCHY-FONT.md)**.
+
 ## The wordmark
 
 This is Omarchy's own wordmark, not a figlet approximation of it. Upstream keeps
 it as Unicode half-block art in `logo.txt`, generated from `logo.svg` by
-`omarchy-transcode-ascii` (which needs ImageMagick). The banner picks the first
+`omarchy-transcode-ascii` (which needs ImageMagick). The letterforms themselves
+grew out of the FIGlet font *Delta Corps Priest 1* by CoSMiC cHiLD. The banner picks the first
 of these that fits your terminal:
 
 | Source | Width | When |
@@ -296,16 +320,26 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
 
 ## Credits
 
-- **Omarchy** by [David Heinemeier Hansson](https://dhh.dk) (@dhh) and Basecamp,
-  [omarchy.org](https://omarchy.org) / [basecamp/omarchy](https://github.com/basecamp/omarchy).
+- **Omarchy** is by [DHH](https://dhh.dk) and 37signals:
+  [omarchy.org](https://omarchy.org) /
+  [basecamp/omarchy](https://github.com/basecamp/omarchy).
   `logo.txt` here is Omarchy's own wordmark art, redistributed under Omarchy's
   MIT licence (Copyright David Heinemeier Hansson); `logo-narrow.txt` is a
-  rescaled rendition of it. The wordmark is Omarchy's, and this repo only
-  renders it in the shell. The strapline is a nod to Omarchy's own framing of a beautiful, fun
-  Linux, with "agentic" added because that is what these boxes are for.
+  rescaled rendition of it. The wordmark is Omarchy's; this repo only renders it.
+- **Omarchy Font** is by [Mark Cuda](https://x.com/therealmc92):
+  [markcuda/Omarchy-Font](https://github.com/markcuda/Omarchy-Font),
+  [specimen](https://tinker.markcuda.com/omarchy-font/). Vendored in `font/`
+  under its MIT licence (Copyright 2026 Mark Cuda), with the licence kept
+  alongside it. A fan project, not affiliated with 37signals.
+- **Delta Corps Priest 1**, the FIGlet font the Omarchy letterforms grew out of,
+  is by CoSMiC cHiLD.
 - **Starship** ([starship.rs](https://starship.rs)) for the prompt this config drives.
+- **fastfetch** and **neofetch** for the fetch output; the fastfetch config
+  follows the section layout of Omarchy's own.
 - **tmux** for everything the `tmux.conf` sits on top of.
-- Thanks to **Mark Cuda** ([@therealmc92](https://x.com/therealmc92)).
+
+The strapline is a nod to Omarchy's own framing of a beautiful, fun Linux, with
+"agentic" added because that is what these boxes are for.
 
 ## Licence
 

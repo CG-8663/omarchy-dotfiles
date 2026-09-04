@@ -16,6 +16,7 @@ MARK_BEGIN="# >>> omarchy-dotfiles >>>"
 MARK_END="# <<< omarchy-dotfiles <<<"
 DRY_RUN=0
 FASTFETCH_DEFAULT=0
+WANT_FONT=1
 
 say()  { printf '\033[1;38;5;205m[oma]\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[oma]\033[0m %s\n' "$1"; }
@@ -119,7 +120,34 @@ install_welcome_file() {
   fi
 
   install_fetch_configs
+  install_omarchy_font
   install_bins
+}
+
+# ---- 3e. the Omarchy Font ---------------------------------------------------
+# markcuda/Omarchy-Font: the wordmark as a real TTF, MIT licensed. Vendored in
+# font/ so this works offline and pins a known version. See docs/OMARCHY-FONT.md.
+#
+# This is the one thing here a terminal cannot use: a terminal draws text in its
+# own monospace face and cannot switch mid-line, which is why the banner stays
+# as block art. The font covers everywhere a real font can go instead.
+install_omarchy_font() {
+  [ "$WANT_FONT" = "1" ] || { say "skipping the Omarchy Font (--no-font)"; return; }
+  local src="$REPO_DIR/font/Omarchy Font.ttf" dest
+  [ -f "$src" ] || { warn "font/Omarchy Font.ttf missing from the repo; skipping"; return; }
+
+  if [ "$OS" = "Darwin" ]; then
+    dest="$HOME/Library/Fonts"
+  else
+    dest="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+  fi
+  mkdir -p "$dest"
+  cp "$src" "$dest/Omarchy Font.ttf"
+  say "installed Omarchy Font to $dest"
+
+  if command -v fc-cache >/dev/null 2>&1; then
+    fc-cache -f "$dest" >/dev/null 2>&1 && say "refreshed the font cache"
+  fi
 }
 
 # ---- 3d. fetch configs ------------------------------------------------------
@@ -371,6 +399,11 @@ uninstall_user() {
     if [ "$DRY_RUN" = "1" ]; then say "would remove $HOME/.config/omarchy-dotfiles/logo-color.txt"
     else rm -f "$HOME/.config/omarchy-dotfiles/logo-color.txt"; say "removed $HOME/.config/omarchy-dotfiles/logo-color.txt"; fi
   fi
+  if [ "$OS" = "Darwin" ]; then
+    restore_file "$HOME/Library/Fonts/Omarchy Font.ttf" "$REPO_DIR/font/Omarchy Font.ttf"
+  else
+    restore_file "${XDG_DATA_HOME:-$HOME/.local/share}/fonts/Omarchy Font.ttf" "$REPO_DIR/font/Omarchy Font.ttf"
+  fi
   restore_file "$HOME/.config/neofetch/config.conf"        "$REPO_DIR/neofetch/config.conf"
   restore_file "$HOME/.config/neofetch/omarchy.ascii"      "$REPO_DIR/neofetch/omarchy.ascii"
   restore_file "$HOME/.config/neofetch/omarchy-small.ascii" "$REPO_DIR/neofetch/omarchy-small.ascii"
@@ -420,6 +453,7 @@ omarchy-dotfiles installer
   ./install.sh --try            open a throwaway shell with the full setup
                                 (banner + prompt), deleted when you exit
 
+  ./install.sh --no-font        skip installing the Omarchy Font TTF
   ./install.sh --fastfetch-default
                                 also replace ~/.config/fastfetch/config.jsonc
                                 (Omarchy ships its own; a backup is kept)
@@ -498,6 +532,7 @@ main() {
       --uninstall)    uninstall=1 ;;
       --dry-run)      DRY_RUN=1 ;;
       --fastfetch-default) FASTFETCH_DEFAULT=1 ;;
+      --no-font)      WANT_FONT=0 ;;
       --preview)      preview; return 0 ;;
       --try)          try_shell; return 0 ;;
       -h|--help)      usage; return 0 ;;
