@@ -46,6 +46,7 @@ cd omarchy-dotfiles
 | `./install.sh --system` | Same for all users via `/etc/profile.d` (root) |
 | `./install.sh --welcome-only` | Banner only, prompt untouched |
 | `./install.sh --preview` | Print the banner and exit, change nothing |
+| `./install.sh --try` | Open a throwaway shell with the full setup, deleted on exit |
 
 Existing files are backed up to `*.chrbak` once, and every shell hook is written
 between guard markers, so re-running is safe and never duplicates a block.
@@ -73,16 +74,27 @@ Opt out for a shell or a whole box:
 export CHRONARA_WELCOME=0
 ```
 
-## Testing it without touching your setup
+## Previewing it without installing
 
-See the banner and nothing else:
+To see the whole thing, prompt and banner together, in a real shell:
+
+```sh
+./install.sh --try
+```
+
+That builds a complete setup in a temporary `$HOME`, drops you into a login
+shell using it, and deletes the lot when you type `exit`. Nothing outside the
+temp directory is ever written, so your own dotfiles are not involved even
+briefly. It will not install anything either: if Starship is not already on the
+box it previews the banner alone and says so, rather than downloading.
+
+For just the banner, without a shell:
 
 ```sh
 ./install.sh --preview
 ```
 
-Do a complete install against a throwaway `$HOME`, so your real dotfiles are
-never touched:
+If you would rather drive the sandbox yourself:
 
 ```sh
 SB=$(mktemp -d)
@@ -224,6 +236,7 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
   Linux, with "agentic" added because that is what these boxes are for.
 - **Starship** ([starship.rs](https://starship.rs)) for the prompt this config drives.
 - **tmux** for everything the `tmux.conf` sits on top of.
+- Thanks to **Mark Cuda** ([@therealmc92](https://x.com/therealmc92)).
 
 ## Licence
 

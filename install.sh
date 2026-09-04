@@ -337,6 +337,8 @@ omarchy-dotfiles installer
   ./install.sh --system         FULL install for ALL users (root), via /etc/profile.d
   ./install.sh --welcome-only   banner only, no prompt changes
   ./install.sh --preview        print the banner and exit, change nothing
+  ./install.sh --try            open a throwaway shell with the full setup
+                                (banner + prompt), deleted when you exit
 
   ./install.sh --uninstall      remove the banner and hooks for the current user
   ./install.sh --uninstall --system
@@ -354,6 +356,45 @@ tmux.conf, the banner) are restored from their .chrbak backup when one exists.
 EOF
 }
 
+# ---- try: preview the whole shell, not just the banner ----------------------
+# --preview prints the banner and stops, which does not show you the prompt or
+# how the two sit together. --try builds a complete install in a temporary HOME,
+# drops you into a login shell using it, and deletes the lot when you exit.
+# Nothing outside the temp directory is written, so your real dotfiles are never
+# involved even for a moment.
+try_shell() {
+  local sb sh_bin rc
+  sb="$(mktemp -d)" || { warn "could not make a temp dir"; return 1; }
+  # shellcheck disable=SC2064
+  trap "rm -rf '$sb'" EXIT INT TERM
+
+  mkdir -p "$sb/.config"
+  HOME="$sb" bash "$REPO_DIR/install.sh" --welcome-only >/dev/null 2>&1
+
+  # Bring in the prompt only if starship is already on this box. --try must not
+  # download anything: it is a preview, not an install.
+  if command -v starship >/dev/null 2>&1; then
+    cp "$REPO_DIR/starship.toml" "$sb/.config/starship.toml"
+    cp "$REPO_DIR/tmux.conf" "$sb/.tmux.conf"
+    case "$(basename "${SHELL:-}")" in
+      zsh)  rc="$sb/.zshrc";  printf '\neval "$(starship init zsh)"\n'  >> "$rc" ;;
+      bash) rc="$sb/.bashrc"; printf '\neval "$(starship init bash)"\n' >> "$rc" ;;
+    esac
+  else
+    warn "starship not installed, so this preview shows the banner without the prompt"
+  fi
+
+  sh_bin="${SHELL:-/bin/sh}"
+  say "throwaway shell in $sb"
+  say "type 'exit' to leave; everything here is deleted on the way out"
+  # ZDOTDIR matters as much as HOME: with ZDOTDIR already exported, zsh reads
+  # the real ~/.zshrc and you would be previewing your existing setup instead.
+  env HOME="$sb" ZDOTDIR="$sb" \
+      STARSHIP_CONFIG="$sb/.config/starship.toml" \
+      "$sh_bin" -l
+  say "sandbox removed, nothing on this box changed"
+}
+
 preview() {
   # Force the interactive guard so the banner renders in a plain shell.
   sh -c 'set -i; . "$1"' _ "$REPO_DIR/welcome.sh" 2>/dev/null \
@@ -369,6 +410,7 @@ main() {
       --uninstall)    uninstall=1 ;;
       --dry-run)      DRY_RUN=1 ;;
       --preview)      preview; return 0 ;;
+      --try)          try_shell; return 0 ;;
       -h|--help)      usage; return 0 ;;
       *)              warn "unknown option: $a"; usage; return 2 ;;
     esac
