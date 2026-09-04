@@ -21,7 +21,7 @@
     { "type": "display","key": "│ ├󱄄",  "keyColor": "38;2;255;95;191" },
     { "type": "disk",   "key": "│ ├󰋊",  "keyColor": "38;2;255;95;191" },
     { "type": "memory", "key": "│ ├",  "keyColor": "38;2;255;95;191" },
-    { "type": "swap",   "key": "└ └󰓡 ", "keyColor": "38;2;255;95;191" },
+    { "type": "swap",   "key": "│ ├󰓡 ", "keyColor": "38;2;255;95;191" },
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
 
     "break",
@@ -37,16 +37,16 @@
     },
     {
       "type": "command",
-      "key": "│ ├󰘬",
+      "key": "│ ├󰔫",
       "keyColor": "38;2;199;125;245",
-      "text": "command -v omarchy-version-branch >/dev/null 2>&1 && omarchy-version-branch || echo '-'"
+      "text": "c=$(omarchy-version-channel 2>/dev/null); [ -z \"$c\" ] && c=$(omarchy-version-branch 2>/dev/null); [ -z \"$c\" ] && c='-'; echo \"$c\""
     },
     { "type": "kernel",       "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "uptime",       "key": "│ ├󱫐", "keyColor": "38;2;199;125;245" },
     { "type": "wm",           "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "terminal",     "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "packages",     "key": "│ ├󰏖", "keyColor": "38;2;199;125;245" },
-    { "type": "terminalfont", "key": "└ └", "keyColor": "38;2;199;125;245" },
+    { "type": "terminalfont", "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
 
     "break",
