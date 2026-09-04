@@ -328,9 +328,9 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
 
 ## Credits
 
-- **omarchy-dotfiles** is by **James Tervit**: the dotfiles, installer, login
-  banner, fetch configs and terminal rendering that make the Omarchy wordmark
-  a working shell setup, built on Mark Cuda's Omarchy Font.
+- **omarchy-dotfiles** is customised by **James Tervit**: the dotfiles,
+  installer, login banner, fetch configs and terminal rendering that make the
+  Omarchy wordmark a working shell setup, built on Mark Cuda's Omarchy Font.
 - **Omarchy** is by [DHH](https://dhh.dk) and 37signals:
   [omarchy.org](https://omarchy.org) /
   [basecamp/omarchy](https://github.com/basecamp/omarchy).
@@ -352,6 +352,27 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
 The strapline is a nod to Omarchy's own framing of a beautiful, fun Linux, with
 "agentic" added because that is what these boxes are for.
 
+## Brand and rights
+
+The **Omarchy** name, wordmark, logo and all associated brand assets are the
+property of **Omarchy.org, DHH and 37signals. All rights reserved.** Nothing
+here claims any right in them. This is an independent customisation, not
+affiliated with or endorsed by Omarchy.org, DHH or 37signals, and the wordmark
+is reproduced only to render their own logo on their own system.
+
+The customisation itself is **given freely to Omarchy.org and DHH** to install,
+ship, modify, relicense or exploit however they wish, with no conditions and no
+claim retained on it. If any of it is useful upstream, take it.
+
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+MIT, Copyright (c) 2026 James Tervit. See [LICENSE](LICENSE).
+
+MIT is deliberate rather than "all rights reserved": it is what actually lets
+Omarchy.org, DHH and anyone else install, ship and build on this without asking.
+Reserving rights over the code would prevent the very thing it is offered for.
+Brand is the separate matter above, and that stays entirely with Omarchy.
+
+Third-party components keep their own licences: `font/Omarchy Font.ttf` is MIT,
+Copyright 2026 Mark Cuda (licence in `font/LICENSE.Omarchy-Font`), and
+`logo.txt` is Omarchy's own art under Omarchy's MIT licence.

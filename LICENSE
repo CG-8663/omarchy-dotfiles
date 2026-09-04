@@ -19,3 +19,21 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+TRADEMARKS AND BRAND
+
+The Omarchy name, wordmark, logo and associated brand assets are the property
+of Omarchy.org, DHH and 37signals. All rights reserved. The MIT grant above
+covers this project's own code and configuration only; it grants no rights in
+those marks. This project is independent and is not affiliated with or endorsed
+by Omarchy.org, DHH or 37signals.
+
+This customisation is given freely to Omarchy.org and DHH to install, ship,
+modify, relicense or exploit as they see fit, with no conditions attached.
+
+Third-party components keep their own licences, included alongside them:
+  font/Omarchy Font.ttf   MIT, Copyright (c) 2026 Mark Cuda
+  logo.txt                Omarchy's own art, under Omarchy's MIT licence
+

@@ -99,7 +99,9 @@ Until then, this repo installs it for you.
 ## Credits
 
 - **omarchy-dotfiles**, the shell setup that packages and installs this font, is
-  by **James Tervit**.
+  customised by **James Tervit**, and given freely to Omarchy.org and DHH to
+  install, ship or exploit as they wish. The Omarchy name and wordmark are the
+  property of Omarchy.org, DHH and 37signals, all rights reserved.
 - **Omarchy** is by [DHH](https://dhh.dk) and 37signals: <https://omarchy.org>
 - **Delta Corps Priest 1**, the FIGlet font the letterforms grew out of, is by
   CoSMiC cHiLD
