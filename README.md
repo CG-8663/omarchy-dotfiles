@@ -48,7 +48,7 @@ cd omarchy-dotfiles
 | `./install.sh --preview` | Print the banner and exit, change nothing |
 | `./install.sh --try` | Open a throwaway shell with the full setup, deleted on exit |
 
-Existing files are backed up to `*.chrbak` once, and every shell hook is written
+Existing files are backed up to `*.omabak` once, and every shell hook is written
 between guard markers, so re-running is safe and never duplicates a block.
 
 ## When the banner fires
@@ -71,7 +71,7 @@ and shows the banner again.
 Opt out for a shell or a whole box:
 
 ```sh
-export CHRONARA_WELCOME=0
+export OMARCHY_WELCOME=0
 ```
 
 ## Previewing it without installing
@@ -133,7 +133,7 @@ It distinguishes between the two things the installer does:
 - **rc files** got a guarded block appended, so uninstall removes only that
   block. Anything you added to `.zshrc` afterwards is kept.
 - **whole files** (`welcome.sh`, and with a full install `starship.toml` and
-  `tmux.conf`) were replaced, so uninstall puts the `.chrbak` backup back if
+  `tmux.conf`) were replaced, so uninstall puts the `.omabak` backup back if
   there is one.
 
 If a config has no backup, it is removed **only when it is byte-identical to the
@@ -154,7 +154,7 @@ reads on its own. Typing plain `neofetch` picks it up, no flag and no alias:
 neofetch
 ```
 
-Your existing config, if you had one, is kept as `config.conf.chrbak` and put
+Your existing config, if you had one, is kept as `config.conf.omabak` and put
 back by `--uninstall`.
 
 neofetch always puts the logo to the **left** of the info column; unlike
@@ -177,7 +177,7 @@ omarchy-fetch
 ```
 
 It is a front end, not another fetch tool. It uses whichever fetch the box
-actually has: **fastfetch** first with `--config ~/.config/chronara/config.jsonc`,
+actually has: **fastfetch** first with `--config ~/.config/omarchy-dotfiles/config.jsonc`,
 then **neofetch**, which needs no flag because the install has already replaced
 its default config. Its own renderer is the fallback for boxes with neither.
 
@@ -189,7 +189,7 @@ omarchy-fetch --plain     # no colour, for piping
 ```
 
 The config mirrors the section layout of Omarchy's own fastfetch config
-(Hardware / Software, box-drawing rules, Nerd Font keys) and adds a Chronara
+(Hardware / Software, box-drawing rules, Nerd Font keys) and adds a Omarchy
 section with location, local IP and Tailscale address. Key colours use the three
 gradient stops instead of green.
 
@@ -200,9 +200,9 @@ Two things it does differently to Omarchy's:
 - **The logo is `file-raw`, not `file`.** fastfetch's `file` type colours a logo
   a line at a time, which cannot express a horizontal gradient. `file-raw` prints
   the file byte for byte, so `install.sh` bakes a pre-coloured
-  `~/.config/chronara/logo-color.txt` and fastfetch just emits it.
+  `~/.config/omarchy-dotfiles/logo-color.txt` and fastfetch just emits it.
 
-The fastfetch config goes to `~/.config/chronara/`, **not** to
+The fastfetch config goes to `~/.config/omarchy-dotfiles/`, **not** to
 `~/.config/fastfetch/`. Omarchy ships its own fastfetch config there and quietly
 replacing it would change the system fetch you already have. neofetch is treated
 differently because you asked for it as the default, and because its stock config
@@ -223,7 +223,7 @@ of these that fits your terminal:
 
 | Source | Width | When |
 |---|---|---|
-| `$CHRONARA_LOGO` | any | you point it at your own art |
+| `$OMARCHY_LOGO` | any | you point it at your own art |
 | `~/.local/share/omarchy/logo.txt` | as installed | on a real Omarchy box, so it tracks your version |
 | bundled `logo.txt` | 81 cols | upstream art, verbatim |
 | bundled `logo-narrow.txt` | 64 cols | narrow terminals |
@@ -236,7 +236,7 @@ area-average down, re-encode. Regenerate at any width with:
 
 ```sh
 ./bin/fit-logo logo.txt 72 0.55 > logo-72.txt
-CHRONARA_LOGO=$PWD/logo-72.txt ./install.sh --preview
+OMARCHY_LOGO=$PWD/logo-72.txt ./install.sh --preview
 ```
 
 The third argument is the coverage threshold. Lower keeps more ink and thickens
@@ -272,7 +272,7 @@ mojibake.
 | Field | Source |
 |---|---|
 | `login` | `id -un` and short hostname |
-| `location` | `/etc/chronara-location`, else `~/.config/chronara/location` |
+| `location` | `/etc/omarchy-location`, else `~/.config/omarchy-dotfiles/location` |
 | `system` | `/etc/os-release`, or `sw_vers` on macOS |
 | `omarchy` | `omarchy-version`, else `git describe` on `~/.local/share/omarchy` |
 | `ipv4` | route to `1.1.1.1`, with the interface it egresses on |
@@ -283,7 +283,7 @@ mojibake.
 Set the location label once per machine:
 
 ```sh
-echo "Studio, London" | sudo tee /etc/chronara-location
+echo "Studio, London" | sudo tee /etc/omarchy-location
 ```
 
 Nothing here phones home, and nothing is written outside `~/.config`, the shell

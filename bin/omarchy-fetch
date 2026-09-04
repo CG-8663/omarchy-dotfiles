@@ -29,32 +29,32 @@ done
 
 # ---- where our data files live ----------------------------------------------
 SHARE=""
-for d in "$SELF_DIR/.." "$HOME/.config/chronara" /usr/local/share/chronara; do
+for d in "$SELF_DIR/.." "$HOME/.config/omarchy-dotfiles" /usr/local/share/omarchy-dotfiles; do
   [ -f "$d/logo.txt" ] && { SHARE="$d"; break; }
 done
 GRAD=""
-for d in "$SELF_DIR/../lib" "$HOME/.config/chronara" /usr/local/share/chronara; do
+for d in "$SELF_DIR/../lib" "$HOME/.config/omarchy-dotfiles" /usr/local/share/omarchy-dotfiles; do
   [ -f "$d/gradient.awk" ] && { GRAD="$d/gradient.awk"; break; }
 done
 
 # ---- hand off to fastfetch where it exists ----------------------------------
 FF_CONFIG=""
-for d in "$SELF_DIR/../fastfetch" "$HOME/.config/chronara" /usr/local/share/chronara; do
+for d in "$SELF_DIR/../fastfetch" "$HOME/.config/omarchy-dotfiles" /usr/local/share/omarchy-dotfiles; do
   [ -f "$d/config.jsonc" ] && { FF_CONFIG="$d/config.jsonc"; break; }
 done
 
 # The config points at a pre-coloured logo, because fastfetch's "file-raw" is
 # what preserves the per-column gradient. Bake it now if the install did not.
 ensure_colour_logo() {
-  local out="$HOME/.config/chronara/logo-color.txt" src=""
+  local out="$HOME/.config/omarchy-dotfiles/logo-color.txt" src=""
   [ -s "$out" ] && return 0
   [ -n "$GRAD" ] || return 1
-  for c in "${CHRONARA_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
+  for c in "${OMARCHY_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
            "${SHARE:+$SHARE/logo.txt}" "${SHARE:+$SHARE/logo-narrow.txt}"; do
     [ -n "$c" ] && [ -f "$c" ] && { src="$c"; break; }
   done
   [ -n "$src" ] || return 1
-  mkdir -p "$HOME/.config/chronara" || return 1
+  mkdir -p "$HOME/.config/omarchy-dotfiles" || return 1
   awk -v tc=1 -f "$GRAD" "$src" > "$out" 2>/dev/null || return 1
 }
 
@@ -187,7 +187,7 @@ if [ "$no_logo" = "0" ]; then
   if [ "$force_narrow" = "1" ]; then
     [ -n "$SHARE" ] && [ -f "$SHARE/logo-narrow.txt" ] && art="$SHARE/logo-narrow.txt"
   else
-    for cand in "${CHRONARA_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
+    for cand in "${OMARCHY_LOGO:-}" "$HOME/.local/share/omarchy/logo.txt" \
                 "${SHARE:+$SHARE/logo.txt}" "${SHARE:+$SHARE/logo-narrow.txt}"; do
       [ -n "$cand" ] && [ -f "$cand" ] || continue
       w=$(awk 'BEGIN{gw=length("█")}{n=length($0);i=1;c=0;while(i<=n){if(substr($0,i,1)==" ")i+=1;else i+=gw;c++} if(c>m)m=c}END{print m+0}' "$cand" 2>/dev/null)

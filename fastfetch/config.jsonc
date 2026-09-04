@@ -7,7 +7,7 @@
   // what preserves the per-column gradient that install.sh bakes into it.
   "logo": {
     "type": "file-raw",
-    "source": "~/.config/chronara/logo-color.txt",
+    "source": "~/.config/omarchy-dotfiles/logo-color.txt",
     "position": "top",
     "padding": { "top": 1, "left": 0 }
   },
@@ -42,6 +42,7 @@
       "text": "command -v omarchy-version-branch >/dev/null 2>&1 && omarchy-version-branch || echo '-'"
     },
     { "type": "kernel",       "key": "│ ├", "keyColor": "38;2;199;125;245" },
+    { "type": "uptime",       "key": "│ ├󱫐", "keyColor": "38;2;199;125;245" },
     { "type": "wm",           "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "terminal",     "key": "│ ├", "keyColor": "38;2;199;125;245" },
     { "type": "packages",     "key": "│ ├󰏖", "keyColor": "38;2;199;125;245" },
@@ -49,12 +50,12 @@
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
 
     "break",
-    { "type": "custom", "format": "\u001b[90m┌──────────────────────Chronara──────────────────────┐" },
+    { "type": "custom", "format": "\u001b[90m┌──────────────────────Network───────────────────────┐" },
     {
       "type": "command",
       "key": "󰍎 Location",
       "keyColor": "38;2;127;184;255",
-      "text": "cat /etc/chronara-location 2>/dev/null || cat \"$HOME/.config/chronara/location\" 2>/dev/null || echo 'unset'"
+      "text": "cat /etc/omarchy-location 2>/dev/null || cat \"$HOME/.config/omarchy-dotfiles/location\" 2>/dev/null || echo 'unset'"
     },
     { "type": "localip", "key": "│ ├󰩠", "keyColor": "38;2;127;184;255" },
     {
@@ -63,7 +64,6 @@
       "keyColor": "38;2;127;184;255",
       "text": "command -v tailscale >/dev/null 2>&1 && tailscale ip -4 2>/dev/null | head -1 || echo '-'"
     },
-    { "type": "uptime",  "key": "└ └󱫐", "keyColor": "38;2;127;184;255" },
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
 
     "break",

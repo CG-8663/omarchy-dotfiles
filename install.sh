@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# omarchy-dotfiles: a Chronara-flavoured login banner and CLI layout for Omarchy.
+# omarchy-dotfiles: a an Omarchy-flavoured login banner and CLI layout for Omarchy.
 #
-# Same Chronara CLI layout as the base install (Starship bordered prompt, tmux,
+# Same Omarchy CLI layout as the base install (Starship bordered prompt, tmux,
 # per-login identity card) but with the Omarchy wordmark and strapline as the
 # login banner. Intended for Omarchy boxes; runs anywhere the base install runs.
 #
-# Safe to re-run: existing files are backed up to *.chrbak once, shell hooks are
+# Safe to re-run: existing files are backed up to *.omabak once, shell hooks are
 # written between guard markers so they are never duplicated.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OMA_DIR="$REPO_DIR"
 OS="$(uname -s)"
-MARK_BEGIN="# >>> chronara-dotfiles >>>"
-MARK_END="# <<< chronara-dotfiles <<<"
+MARK_BEGIN="# >>> omarchy-dotfiles >>>"
+MARK_END="# <<< omarchy-dotfiles <<<"
 DRY_RUN=0
 FASTFETCH_DEFAULT=0
 
@@ -22,9 +22,9 @@ warn() { printf '\033[1;33m[oma]\033[0m %s\n' "$1"; }
 
 backup() {  # backup a path once if it exists and is not already backed up
   local f="$1"
-  if [ -e "$f" ] && [ ! -e "$f.chrbak" ]; then
-    cp -a "$f" "$f.chrbak"
-    say "backed up $f -> $f.chrbak"
+  if [ -e "$f" ] && [ ! -e "$f.omabak" ]; then
+    cp -a "$f" "$f.omabak"
+    say "backed up $f -> $f.omabak"
   fi
 }
 
@@ -85,34 +85,34 @@ install_font() {
 
 # ---- 3a. the Omarchy welcome banner (always) --------------------------------
 install_welcome_file() {
-  mkdir -p "$HOME/.config/chronara"
-  backup "$HOME/.config/chronara/welcome.sh"
-  cp "$REPO_DIR/welcome.sh" "$HOME/.config/chronara/welcome.sh"
-  chmod +x "$HOME/.config/chronara/welcome.sh"
-  say "installed ~/.config/chronara/welcome.sh (Omarchy banner)"
+  mkdir -p "$HOME/.config/omarchy-dotfiles"
+  backup "$HOME/.config/omarchy-dotfiles/welcome.sh"
+  cp "$REPO_DIR/welcome.sh" "$HOME/.config/omarchy-dotfiles/welcome.sh"
+  chmod +x "$HOME/.config/omarchy-dotfiles/welcome.sh"
+  say "installed ~/.config/omarchy-dotfiles/welcome.sh (Omarchy banner)"
   # The wordmark art itself. On a real Omarchy box the banner prefers that
   # box's own ~/.local/share/omarchy/logo.txt so it tracks the installed
   # version; these are the fallback, plus a narrow rendition for small
   # terminals.
   local art
   for art in logo.txt logo-narrow.txt; do
-    backup "$HOME/.config/chronara/$art"
-    cp "$REPO_DIR/$art" "$HOME/.config/chronara/$art"
+    backup "$HOME/.config/omarchy-dotfiles/$art"
+    cp "$REPO_DIR/$art" "$HOME/.config/omarchy-dotfiles/$art"
   done
   say "installed wordmark art (logo.txt 81 cols, logo-narrow.txt 64 cols)"
 
-  backup "$HOME/.config/chronara/gradient.awk"
-  cp "$REPO_DIR/lib/gradient.awk" "$HOME/.config/chronara/gradient.awk"
+  backup "$HOME/.config/omarchy-dotfiles/gradient.awk"
+  cp "$REPO_DIR/lib/gradient.awk" "$HOME/.config/omarchy-dotfiles/gradient.awk"
 
   # fastfetch reads the logo with "file-raw", which prints the file byte for
   # byte; that is what keeps the per-column gradient. So bake a coloured copy
   # here rather than asking fastfetch to colour it, which it can only do a whole
   # line at a time.
-  backup "$HOME/.config/chronara/config.jsonc"
-  cp "$REPO_DIR/fastfetch/config.jsonc" "$HOME/.config/chronara/config.jsonc"
+  backup "$HOME/.config/omarchy-dotfiles/config.jsonc"
+  cp "$REPO_DIR/fastfetch/config.jsonc" "$HOME/.config/omarchy-dotfiles/config.jsonc"
   local logo_src="$REPO_DIR/logo.txt"
   [ -f "$HOME/.local/share/omarchy/logo.txt" ] && logo_src="$HOME/.local/share/omarchy/logo.txt"
-  if awk -v tc=1 -f "$REPO_DIR/lib/gradient.awk" "$logo_src" > "$HOME/.config/chronara/logo-color.txt" 2>/dev/null; then
+  if awk -v tc=1 -f "$REPO_DIR/lib/gradient.awk" "$logo_src" > "$HOME/.config/omarchy-dotfiles/logo-color.txt" 2>/dev/null; then
     say "baked coloured wordmark for fastfetch (from $(basename "$logo_src"))"
   else
     warn "could not bake the coloured wordmark; fastfetch will show it plain"
@@ -159,20 +159,20 @@ install_bins() {
   done
   say "installed omarchy-fetch and fit-logo to ~/.local/bin"
   if command -v fastfetch >/dev/null 2>&1; then
-    say "fastfetch found: omarchy-fetch will use it with the Chronara config"
+    say "fastfetch found: omarchy-fetch will use it with the Omarchy config"
   else
     warn "fastfetch not installed; omarchy-fetch falls back to its built-in renderer"
   fi
 }
 
 # ---- 3b. prompt + tmux config (full install only) ---------------------------
-# These come from the repo root: the Chronara CLI layout is shared, only the
+# These come from the repo root: the Omarchy CLI layout is shared, only the
 # banner differs between the two editions.
 install_configs() {
   mkdir -p "$HOME/.config"
   backup "$HOME/.config/starship.toml"
   cp "$REPO_DIR/starship.toml" "$HOME/.config/starship.toml"
-  say "installed ~/.config/starship.toml (Chronara bordered prompt)"
+  say "installed ~/.config/starship.toml (Omarchy bordered prompt)"
 
   backup "$HOME/.tmux.conf"
   cp "$REPO_DIR/tmux.conf" "$HOME/.tmux.conf"
@@ -212,7 +212,7 @@ write_block() {  # $1=file  $2=block body (may be multi-line)
 hook_shell() {  # $1 = 1 to include the prompt, 0 for banner only
   local want_prompt="$1"
   local irc lrc init src body
-  src='[ -f "$HOME/.config/chronara/welcome.sh" ] && . "$HOME/.config/chronara/welcome.sh"'
+  src='[ -f "$HOME/.config/omarchy-dotfiles/welcome.sh" ] && . "$HOME/.config/omarchy-dotfiles/welcome.sh"'
 
   case "$(basename "${SHELL:-}")" in
     zsh)  irc="$HOME/.zshrc";  lrc="$HOME/.zprofile";      init='eval "$(starship init zsh)"' ;;
@@ -245,23 +245,23 @@ hook_shell() {  # $1 = 1 to include the prompt, 0 for banner only
 # ---- optional: system-wide banner for shared boxes (root, --system) ---------
 install_system_welcome() {
   [ "$(id -u)" = "0" ] || { warn "--system needs root; skipping system-wide welcome"; return; }
-  mkdir -p /usr/local/share/chronara
-  backup /usr/local/share/chronara/welcome.sh
-  cp "$REPO_DIR/welcome.sh" /usr/local/share/chronara/welcome.sh
-  chmod +x /usr/local/share/chronara/welcome.sh
+  mkdir -p /usr/local/share/omarchy-dotfiles
+  backup /usr/local/share/omarchy-dotfiles/welcome.sh
+  cp "$REPO_DIR/welcome.sh" /usr/local/share/omarchy-dotfiles/welcome.sh
+  chmod +x /usr/local/share/omarchy-dotfiles/welcome.sh
   local art
   for art in logo.txt logo-narrow.txt; do
-    backup "/usr/local/share/chronara/$art"
-    cp "$REPO_DIR/$art" "/usr/local/share/chronara/$art"
+    backup "/usr/local/share/omarchy-dotfiles/$art"
+    cp "$REPO_DIR/$art" "/usr/local/share/omarchy-dotfiles/$art"
   done
   # Same login-vs-new-terminal split as the per-user hooks, at system level.
   # /etc/profile.d covers login shells only; an interactive non-login shell
   # (a new terminal tab) reads /etc/bash.bashrc or /etc/zsh/zshrc instead.
-  local src='[ -f /usr/local/share/chronara/welcome.sh ] && . /usr/local/share/chronara/welcome.sh'
+  local src='[ -f /usr/local/share/omarchy-dotfiles/welcome.sh ] && . /usr/local/share/omarchy-dotfiles/welcome.sh'
   if [ -d /etc/profile.d ]; then
-    printf '# Chronara x Omarchy login banner (all users). Managed by chronara-dotfiles.\n%s\n' "$src" \
-      > /etc/profile.d/chronara-welcome.sh
-    say "installed /etc/profile.d/chronara-welcome.sh (login, all users)"
+    printf '# omarchy-dotfiles login banner (all users). Managed by omarchy-dotfiles.\n%s\n' "$src" \
+      > /etc/profile.d/omarchy-dotfiles-welcome.sh
+    say "installed /etc/profile.d/omarchy-dotfiles-welcome.sh (login, all users)"
   fi
   if [ -f /etc/bash.bashrc ]; then   # Arch/Debian: interactive non-login bash
     write_block /etc/bash.bashrc "$src"
@@ -284,28 +284,28 @@ install_system_prompt() {
   else
     say "starship already present"
   fi
-  mkdir -p /usr/local/share/chronara
-  cp "$REPO_DIR/starship.toml" /usr/local/share/chronara/starship.toml
+  mkdir -p /usr/local/share/omarchy-dotfiles
+  cp "$REPO_DIR/starship.toml" /usr/local/share/omarchy-dotfiles/starship.toml
   cp "$REPO_DIR/tmux.conf" /etc/tmux.conf && say "installed /etc/tmux.conf (all users)"
-  cat > /etc/profile.d/chronara-prompt.sh <<'PROMPT'
-# Chronara bordered prompt (all users). Managed by chronara-dotfiles.
+  cat > /etc/profile.d/omarchy-dotfiles-prompt.sh <<'PROMPT'
+# Omarchy bordered prompt (all users). Managed by omarchy-dotfiles.
 case "$-" in *i*)
-  [ -z "${STARSHIP_CONFIG:-}" ] && export STARSHIP_CONFIG=/usr/local/share/chronara/starship.toml
+  [ -z "${STARSHIP_CONFIG:-}" ] && export STARSHIP_CONFIG=/usr/local/share/omarchy-dotfiles/starship.toml
   if command -v starship >/dev/null 2>&1; then
     if   [ -n "${ZSH_VERSION:-}" ];  then eval "$(starship init zsh)"
     elif [ -n "${BASH_VERSION:-}" ]; then eval "$(starship init bash)"; fi
   fi
 ;; esac
 PROMPT
-  say "installed /etc/profile.d/chronara-prompt.sh (all users)"
+  say "installed /etc/profile.d/omarchy-dotfiles-prompt.sh (all users)"
   # /etc/zsh/zshrc carries BOTH the prompt and the banner. install_system_welcome
   # already wrote a guarded block here and the marker pair is shared, so writing
   # the prompt on its own would silently drop the banner. Emit them together.
   if [ -d /etc/zsh ]; then
     write_block /etc/zsh/zshrc "$(cat <<'ZBLOCK'
-[ -z "${STARSHIP_CONFIG:-}" ] && export STARSHIP_CONFIG=/usr/local/share/chronara/starship.toml
+[ -z "${STARSHIP_CONFIG:-}" ] && export STARSHIP_CONFIG=/usr/local/share/omarchy-dotfiles/starship.toml
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
-[ -f /usr/local/share/chronara/welcome.sh ] && . /usr/local/share/chronara/welcome.sh
+[ -f /usr/local/share/omarchy-dotfiles/welcome.sh ] && . /usr/local/share/omarchy-dotfiles/welcome.sh
 ZBLOCK
 )"
     say "installed /etc/zsh/zshrc hook (prompt + banner, zsh interactive)"
@@ -316,7 +316,7 @@ ZBLOCK
 # Two different jobs, and conflating them loses your edits:
 #   rc files  - we APPENDED a guarded block, so remove just that block and leave
 #               everything you have added since alone.
-#   configs   - we OVERWROTE the whole file, so put the .chrbak backup back if
+#   configs   - we OVERWROTE the whole file, so put the .omabak backup back if
 #               there is one, otherwise take our copy away.
 remove_block() {  # $1 = file
   local rc="$1" tmp
@@ -335,10 +335,10 @@ remove_block() {  # $1 = file
 
 restore_file() {  # $1 = a file we may have overwritten  $2 = our shipped copy
   local f="$1" ours="$2"
-  if [ -e "$f.chrbak" ]; then
+  if [ -e "$f.omabak" ]; then
     # a backup exists, so we definitely overwrote something: put it back
-    if [ "$DRY_RUN" = "1" ]; then say "would restore $f from $f.chrbak"; return 0; fi
-    mv "$f.chrbak" "$f"; say "restored $f from backup"
+    if [ "$DRY_RUN" = "1" ]; then say "would restore $f from $f.omabak"; return 0; fi
+    mv "$f.omabak" "$f"; say "restored $f from backup"
     return 0
   fi
   [ -e "$f" ] || return 0
@@ -361,15 +361,15 @@ uninstall_user() {
   for rc in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.bash_profile" "$HOME/.profile"; do
     remove_block "$rc"
   done
-  restore_file "$HOME/.config/chronara/welcome.sh"     "$REPO_DIR/welcome.sh"
-  restore_file "$HOME/.config/chronara/logo.txt"        "$REPO_DIR/logo.txt"
-  restore_file "$HOME/.config/chronara/logo-narrow.txt" "$REPO_DIR/logo-narrow.txt"
-  restore_file "$HOME/.config/chronara/gradient.awk"    "$REPO_DIR/lib/gradient.awk"
-  restore_file "$HOME/.config/chronara/config.jsonc"    "$REPO_DIR/fastfetch/config.jsonc"
+  restore_file "$HOME/.config/omarchy-dotfiles/welcome.sh"     "$REPO_DIR/welcome.sh"
+  restore_file "$HOME/.config/omarchy-dotfiles/logo.txt"        "$REPO_DIR/logo.txt"
+  restore_file "$HOME/.config/omarchy-dotfiles/logo-narrow.txt" "$REPO_DIR/logo-narrow.txt"
+  restore_file "$HOME/.config/omarchy-dotfiles/gradient.awk"    "$REPO_DIR/lib/gradient.awk"
+  restore_file "$HOME/.config/omarchy-dotfiles/config.jsonc"    "$REPO_DIR/fastfetch/config.jsonc"
   # generated at install time, so there is no shipped copy to compare against
-  if [ -f "$HOME/.config/chronara/logo-color.txt" ]; then
-    if [ "$DRY_RUN" = "1" ]; then say "would remove $HOME/.config/chronara/logo-color.txt"
-    else rm -f "$HOME/.config/chronara/logo-color.txt"; say "removed $HOME/.config/chronara/logo-color.txt"; fi
+  if [ -f "$HOME/.config/omarchy-dotfiles/logo-color.txt" ]; then
+    if [ "$DRY_RUN" = "1" ]; then say "would remove $HOME/.config/omarchy-dotfiles/logo-color.txt"
+    else rm -f "$HOME/.config/omarchy-dotfiles/logo-color.txt"; say "removed $HOME/.config/omarchy-dotfiles/logo-color.txt"; fi
   fi
   restore_file "$HOME/.config/neofetch/config.conf"        "$REPO_DIR/neofetch/config.conf"
   restore_file "$HOME/.config/neofetch/omarchy.ascii"      "$REPO_DIR/neofetch/omarchy.ascii"
@@ -382,15 +382,15 @@ uninstall_user() {
   done
   restore_file "$HOME/.config/starship.toml"        "$REPO_DIR/starship.toml"
   restore_file "$HOME/.tmux.conf"                   "$REPO_DIR/tmux.conf"
-  if [ "$DRY_RUN" != "1" ] && [ -d "$HOME/.config/chronara" ]; then
-    rmdir "$HOME/.config/chronara" 2>/dev/null && say "removed empty ~/.config/chronara"
+  if [ "$DRY_RUN" != "1" ] && [ -d "$HOME/.config/omarchy-dotfiles" ]; then
+    rmdir "$HOME/.config/omarchy-dotfiles" 2>/dev/null && say "removed empty ~/.config/omarchy-dotfiles"
   fi
 }
 
 uninstall_system() {
   if [ "$(id -u)" != "0" ]; then warn "--system uninstall needs root; skipping system-wide files"; return; fi
   local f
-  for f in /etc/profile.d/chronara-welcome.sh /etc/profile.d/chronara-prompt.sh; do
+  for f in /etc/profile.d/omarchy-dotfiles-welcome.sh /etc/profile.d/omarchy-dotfiles-prompt.sh; do
     if [ -e "$f" ]; then
       if [ "$DRY_RUN" = "1" ]; then say "would remove $f"; else rm -f "$f"; say "removed $f"; fi
     fi
@@ -399,12 +399,12 @@ uninstall_system() {
     remove_block "$f"
   done
   restore_file /etc/tmux.conf "$REPO_DIR/tmux.conf"
-  restore_file /usr/local/share/chronara/welcome.sh     "$REPO_DIR/welcome.sh"
-  restore_file /usr/local/share/chronara/logo.txt        "$REPO_DIR/logo.txt"
-  restore_file /usr/local/share/chronara/logo-narrow.txt "$REPO_DIR/logo-narrow.txt"
-  if [ -d /usr/local/share/chronara ]; then
-    if [ "$DRY_RUN" = "1" ]; then say "would remove /usr/local/share/chronara"
-    else rm -rf /usr/local/share/chronara; say "removed /usr/local/share/chronara"; fi
+  restore_file /usr/local/share/omarchy-dotfiles/welcome.sh     "$REPO_DIR/welcome.sh"
+  restore_file /usr/local/share/omarchy-dotfiles/logo.txt        "$REPO_DIR/logo.txt"
+  restore_file /usr/local/share/omarchy-dotfiles/logo-narrow.txt "$REPO_DIR/logo-narrow.txt"
+  if [ -d /usr/local/share/omarchy-dotfiles ]; then
+    if [ "$DRY_RUN" = "1" ]; then say "would remove /usr/local/share/omarchy-dotfiles"
+    else rm -rf /usr/local/share/omarchy-dotfiles; say "removed /usr/local/share/omarchy-dotfiles"; fi
   fi
 }
 
@@ -440,7 +440,7 @@ just run the one you want; you do not need to uninstall first.
 
 Uninstall removes only the guarded block from your rc files, so anything you
 added yourself is kept. Files that were overwritten wholesale (starship.toml,
-tmux.conf, the banner) are restored from their .chrbak backup when one exists.
+tmux.conf, the banner) are restored from their .omabak backup when one exists.
 EOF
 }
 

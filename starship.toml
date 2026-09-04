@@ -1,4 +1,4 @@
-# Chronara shared prompt - Starship, styled to match the bordered Kali-style
+# Omarchy shared prompt - Starship, styled to match the bordered Kali-style
 # bash prompt on the Linux servers:  ┌─[user@host]─[path]  /  └──╼ ❯
 # Works in zsh + bash, macOS + Linux, any terminal (Terminal, iTerm2, Tabby).
 # Edit this one file and re-run install.sh on each box to roll it out.
