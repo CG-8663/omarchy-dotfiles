@@ -1,0 +1,60 @@
+# Chronara shared prompt - Starship, styled to match the bordered Kali-style
+# bash prompt on the Linux servers:  ┌─[user@host]─[path]  /  └──╼ ❯
+# Works in zsh + bash, macOS + Linux, any terminal (Terminal, iTerm2, Tabby).
+# Edit this one file and re-run install.sh on each box to roll it out.
+
+add_newline = true
+command_timeout = 1000
+
+# Literal brackets/borders are in a TOML literal string ('''), so \[ \] stay raw.
+format = '''
+[┌─\[](bold red)$username[@](bold yellow)$hostname[\]─\[](bold red)$directory[\]](bold red)$git_branch$git_status$git_state$cmd_duration
+[└──╼](bold red) $character'''
+
+[username]
+show_always = true
+style_user = "bold white"
+style_root = "bold red"
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bold cyan"
+format = "[$hostname]($style)"
+
+[directory]
+style = "bold green"
+truncation_length = 0       # show the full path, like Kali's \w
+truncate_to_repo = false    # not just the repo-relative part
+truncation_symbol = ""
+read_only = " ro"
+format = "[$path]($style)"
+
+[character]
+success_symbol = "[❯](bold yellow)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold yellow)"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = " on [$symbol$branch]($style)"
+
+[git_status]
+style = "bold red"
+format = " ([$all_status$ahead_behind]($style))"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+[cmd_duration]
+min_time = 2000
+style = "bold yellow"
+format = " took [$duration]($style)"
