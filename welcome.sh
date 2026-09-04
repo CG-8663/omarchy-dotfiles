@@ -114,39 +114,112 @@ else
   _chr_tc=0; PK=; VI=; BL=; D=; G=; B=; R=
 fi
 
-# Colour the wordmark column by column so it reproduces the real gradient rather
-# than a flat approximation of it. Falls back to the 256-colour cube when the
-# terminal does not advertise truecolor, and to plain text when not a tty.
+# ---- pick the wordmark ------------------------------------------------------
+# Prefer the real Omarchy art over anything we could approximate. In order:
+#   1. $CHRONARA_LOGO, if you point it at your own file
+#   2. the box's own ~/.local/share/omarchy/logo.txt, so the banner always
+#      matches the Omarchy version actually installed
+#   3. our bundled copy of that same art (81 columns)
+#   4. a narrower rendition of it for small terminals (64 columns)
+#   5. a plain figlet wordmark, only if none of the above fit
+_chr_cols=${COLUMNS:-0}
+case "$_chr_cols" in ''|*[!0-9]*) _chr_cols=0 ;; esac
+[ "$_chr_cols" -lt 1 ] && _chr_cols=$(tput cols 2>/dev/null || echo 80)
+
+_chr_share=""
+for _d in "$HOME/.config/chronara" /usr/local/share/chronara; do
+  [ -f "$_d/logo.txt" ] && { _chr_share="$_d"; break; }
+done
+
+# Width in COLUMNS, not bytes. Each block or braille glyph is three bytes in
+# UTF-8, so a byte count over-reports by ~3x and rejects art that fits fine.
+# gawk under a UTF-8 locale counts characters; BSD awk (macOS) counts bytes.
+# Detect which we have by measuring a glyph, then step three bytes at a time
+# when it is the byte-counting kind. The same walk is what keeps substr() from
+# slicing a glyph into thirds further down.
+_chr_artwidth() {
+  awk '
+    BEGIN { gw = length("█") }
+    {
+      n = length($0); i = 1; col = 0
+      while (i <= n) {
+        if (substr($0, i, 1) == " ") i += 1; else i += gw
+        col++
+      }
+      if (col > m) m = col
+    }
+    END { print m+0 }' "$1" 2>/dev/null
+}
+
+_chr_fits() {
+  [ -f "$1" ] || return 1
+  _w=$(_chr_artwidth "$1")
+  [ -n "$_w" ] && [ "$_w" -gt 0 ] && [ "$_w" -le "$_chr_cols" ]
+}
+
+_chr_logo=""
+for _cand in \
+  "${CHRONARA_LOGO:-}" \
+  "$HOME/.local/share/omarchy/logo.txt" \
+  "${_chr_share:+$_chr_share/logo.txt}" \
+  "${_chr_share:+$_chr_share/logo-narrow.txt}"
+do
+  [ -n "$_cand" ] || continue
+  if _chr_fits "$_cand"; then _chr_logo="$_cand"; break; fi
+done
+unset _d _cand _w
+
+# ---- colour the wordmark ----------------------------------------------------
+# Column by column, so it reproduces the gradient rather than approximating it
+# with one flat colour. Buffers the art first to learn its true width, so the
+# gradient spans the wordmark itself rather than a guessed number of columns.
+# Falls back to the 256-colour cube without truecolor, and to plain text when
+# stdout is not a terminal.
 _chr_wordmark() {
   if [ -z "$R" ] || ! command -v awk >/dev/null 2>&1; then cat; return; fi
-  awk -v tc="$_chr_tc" -v w=51 '
-    function lerp(a,b,t) { return int(a + (b-a)*t + 0.5) }
-    function q(v) { return int(v*5/255 + 0.5) }
+  awk -v tc="$_chr_tc" '
+    function lerp(a, b, t) { return int(a + (b-a)*t + 0.5) }
+    function q(v)          { return int(v*5/255 + 0.5) }
+    BEGIN { gw = length("█") }   # 1 on a character-aware awk, 3 on a byte one
     {
-      n = length($0); out = ""
-      for (i = 1; i <= n; i++) {
-        c = substr($0, i, 1)
-        if (c == " ") { out = out c; continue }
-        t = (w > 1) ? (i-1)/(w-1) : 0
-        if (t > 1) t = 1
-        if (t < 0.5) { u = t/0.5;       r=lerp(255,199,u); g=lerp( 95,125,u); b=lerp(191,245,u) }
-        else         { u = (t-0.5)/0.5; r=lerp(199,127,u); g=lerp(125,184,u); b=lerp(245,255,u) }
-        if (tc == "1") out = out sprintf("\033[38;2;%d;%d;%dm%s", r, g, b, c)
-        else           out = out sprintf("\033[38;5;%dm%s", 16 + 36*q(r) + 6*q(g) + q(b), c)
+      line[NR] = $0
+      n = length($0); i = 1; col = 0
+      while (i <= n) { if (substr($0, i, 1) == " ") i += 1; else i += gw; col++ }
+      if (col > w) w = col
+    }
+    END {
+      for (ln = 1; ln <= NR; ln++) {
+        s = line[ln]; n = length(s); i = 1; col = 0; out = ""
+        while (i <= n) {
+          c = substr(s, i, 1)
+          if (c == " ") { out = out c; i += 1; col++; continue }
+          g = substr(s, i, gw); i += gw
+          t = (w > 1) ? col/(w-1) : 0
+          if (t > 1) t = 1
+          if (t < 0.5) { u = t/0.5;       r=lerp(255,199,u); gg=lerp( 95,125,u); b=lerp(191,245,u) }
+          else         { u = (t-0.5)/0.5; r=lerp(199,127,u); gg=lerp(125,184,u); b=lerp(245,255,u) }
+          if (tc == "1") out = out sprintf("\033[38;2;%d;%d;%dm%s", r, gg, b, g)
+          else           out = out sprintf("\033[38;5;%dm%s", 16 + 36*q(r) + 6*q(gg) + q(b), g)
+          col++
+        }
+        print out "\033[0m"
       }
-      print out "\033[0m"
     }'
 }
 
 # ---- render -----------------------------------------------------------------
 printf '\n'
-_chr_wordmark <<'ART'
+if [ -n "$_chr_logo" ]; then
+  _chr_wordmark < "$_chr_logo"
+else
+  _chr_wordmark <<'ART'
   ___   __  __     _     ____    ____  _   _ __   __
  / _ \ |  \/  |   / \   |  _ \  / ___|| | | |\ \ / /
 | | | || |\/| |  / _ \  | |_) || |    | |_| | \ V / 
 | |_| || |  | | / ___ \ |  _ < | |___ |  _  |  | |  
  \___/ |_|  |_|/_/   \_\|_| \_\ \____||_| |_|  |_|  
 ART
+fi
 printf '\n   %s%sWelcome to A Changing World with Omarchy%s\n' "$B" "$PK" "$R"
 printf '   %sWelcome to the Beautiful, Fun & Agentic Linux%s   %s@DHH%s\n\n' "$VI" "$R" "$BL" "$R"
 
@@ -160,5 +233,5 @@ printf '   %sipv6%s       %s\n'         "$D" "$R" "$_chr_ip6"
 [ -n "$_chr_up" ] && printf '   %suptime%s     %s\n' "$D" "$R" "$_chr_up"
 printf '\n   %s%sChronara AI%s %sthe future of compute%s\n\n' "$B" "$BL" "$R" "$D" "$R"
 
-unset PK VI BL D G B R _chr_tc _chr_user _chr_host _chr_sys _chr_omarchy _chr_loc _chr_if _chr_ip4 _chr_ip6 _chr_ts _chr_up
-unset -f _chr_wordmark 2>/dev/null || true
+unset PK VI BL D G B R _chr_tc _chr_cols _chr_share _chr_logo _chr_user _chr_host _chr_sys _chr_omarchy _chr_loc _chr_if _chr_ip4 _chr_ip6 _chr_ts _chr_up
+unset -f _chr_wordmark _chr_fits 2>/dev/null || true

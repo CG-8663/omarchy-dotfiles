@@ -89,6 +89,16 @@ install_welcome_file() {
   cp "$REPO_DIR/welcome.sh" "$HOME/.config/chronara/welcome.sh"
   chmod +x "$HOME/.config/chronara/welcome.sh"
   say "installed ~/.config/chronara/welcome.sh (Omarchy banner)"
+  # The wordmark art itself. On a real Omarchy box the banner prefers that
+  # box's own ~/.local/share/omarchy/logo.txt so it tracks the installed
+  # version; these are the fallback, plus a narrow rendition for small
+  # terminals.
+  local art
+  for art in logo.txt logo-narrow.txt; do
+    backup "$HOME/.config/chronara/$art"
+    cp "$REPO_DIR/$art" "$HOME/.config/chronara/$art"
+  done
+  say "installed wordmark art (logo.txt 81 cols, logo-narrow.txt 64 cols)"
 }
 
 # ---- 3b. prompt + tmux config (full install only) ---------------------------
@@ -175,6 +185,11 @@ install_system_welcome() {
   backup /usr/local/share/chronara/welcome.sh
   cp "$REPO_DIR/welcome.sh" /usr/local/share/chronara/welcome.sh
   chmod +x /usr/local/share/chronara/welcome.sh
+  local art
+  for art in logo.txt logo-narrow.txt; do
+    backup "/usr/local/share/chronara/$art"
+    cp "$REPO_DIR/$art" "/usr/local/share/chronara/$art"
+  done
   # Same login-vs-new-terminal split as the per-user hooks, at system level.
   # /etc/profile.d covers login shells only; an interactive non-login shell
   # (a new terminal tab) reads /etc/bash.bashrc or /etc/zsh/zshrc instead.
@@ -282,7 +297,9 @@ uninstall_user() {
   for rc in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.bash_profile" "$HOME/.profile"; do
     remove_block "$rc"
   done
-  restore_file "$HOME/.config/chronara/welcome.sh" "$REPO_DIR/welcome.sh"
+  restore_file "$HOME/.config/chronara/welcome.sh"     "$REPO_DIR/welcome.sh"
+  restore_file "$HOME/.config/chronara/logo.txt"        "$REPO_DIR/logo.txt"
+  restore_file "$HOME/.config/chronara/logo-narrow.txt" "$REPO_DIR/logo-narrow.txt"
   restore_file "$HOME/.config/starship.toml"        "$REPO_DIR/starship.toml"
   restore_file "$HOME/.tmux.conf"                   "$REPO_DIR/tmux.conf"
   if [ "$DRY_RUN" != "1" ] && [ -d "$HOME/.config/chronara" ]; then
@@ -302,7 +319,9 @@ uninstall_system() {
     remove_block "$f"
   done
   restore_file /etc/tmux.conf "$REPO_DIR/tmux.conf"
-  restore_file /usr/local/share/chronara/welcome.sh "$REPO_DIR/welcome.sh"
+  restore_file /usr/local/share/chronara/welcome.sh     "$REPO_DIR/welcome.sh"
+  restore_file /usr/local/share/chronara/logo.txt        "$REPO_DIR/logo.txt"
+  restore_file /usr/local/share/chronara/logo-narrow.txt "$REPO_DIR/logo-narrow.txt"
   if [ -d /usr/local/share/chronara ]; then
     if [ "$DRY_RUN" = "1" ]; then say "would remove /usr/local/share/chronara"
     else rm -rf /usr/local/share/chronara; say "removed /usr/local/share/chronara"; fi

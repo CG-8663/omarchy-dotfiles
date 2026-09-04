@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Rescale Unicode half-block art without ImageMagick.
+
+Half-block art packs two vertical pixels into one character cell:
+  U+2588 FULL BLOCK      both on      U+2580 UPPER HALF   top on
+  U+2584 LOWER HALF      bottom on    space               both off
+So the text is a lossless 1-bit bitmap at 2x vertical resolution. Decode it back
+to that bitmap, area-average down to the target width preserving aspect, then
+re-encode. Terminal cells are about twice as tall as wide, which the 2:1 vertical
+packing already accounts for, so the aspect is right when we scale x and y by the
+same factor.
+"""
+import sys
+
+FULL, UPPER, LOWER, SPACE = "█", "▀", "▄", " "
+DECODE = {FULL: (1, 1), UPPER: (1, 0), LOWER: (0, 1), SPACE: (0, 0)}
+ENCODE = {(1, 1): FULL, (1, 0): UPPER, (0, 1): LOWER, (0, 0): SPACE}
+
+
+def to_bitmap(lines):
+    w = max((len(l) for l in lines), default=0)
+    rows = []
+    for line in lines:
+        padded = line.ljust(w)
+        top, bot = [], []
+        for ch in padded:
+            t, b = DECODE.get(ch, (0, 0))
+            top.append(t); bot.append(b)
+        rows.append(top); rows.append(bot)
+    return rows, w, len(rows)
+
+
+def scale(bmp, sw, sh, tw, threshold):
+    ratio = tw / sw
+    th = max(1, int(round(sh * ratio)))
+    if th % 2:                      # need an even number of pixel rows to re-pack
+        th += 1
+    out = []
+    for y in range(th):
+        y0, y1 = y * sh / th, (y + 1) * sh / th
+        row = []
+        for x in range(tw):
+            x0, x1 = x * sw / tw, (x + 1) * sw / tw
+            total = cover = 0.0
+            for sy in range(int(y0), min(sh, int(y1) + 1)):
+                oy = min(y1, sy + 1) - max(y0, sy)
+                if oy <= 0:
+                    continue
+                for sx in range(int(x0), min(sw, int(x1) + 1)):
+                    ox = min(x1, sx + 1) - max(x0, sx)
+                    if ox <= 0:
+                        continue
+                    a = oy * ox
+                    total += a
+                    if bmp[sy][sx]:
+                        cover += a
+            row.append(1 if total and cover / total >= threshold else 0)
+        out.append(row)
+    return out, th
+
+
+def to_text(bmp, h):
+    lines = []
+    for y in range(0, h, 2):
+        top, bot = bmp[y], bmp[y + 1] if y + 1 < h else [0] * len(bmp[y])
+        lines.append("".join(ENCODE[(t, b)] for t, b in zip(top, bot)).rstrip())
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return lines
+
+
+def main():
+    src, width, threshold = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]) if len(sys.argv) > 3 else 0.5
+    lines = [l.rstrip("\n") for l in open(src, encoding="utf-8")]
+    bmp, w, h = to_bitmap(lines)
+    if width >= w:
+        print("\n".join(l.rstrip() for l in lines)); return
+    out, oh = scale(bmp, w, h, width, threshold)
+    print("\n".join(to_text(out, oh)))
+
+
+main()

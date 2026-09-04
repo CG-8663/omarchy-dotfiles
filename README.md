@@ -5,11 +5,16 @@ wordmark in its own pink-to-blue gradient, a strapline, and a compact identity
 card telling you which machine you just landed on.
 
 ```
-  ___   __  __     _     ____    ____  _   _ __   __
- / _ \ |  \/  |   / \   |  _ \  / ___|| | | |\ \ / /
-| | | || |\/| |  / _ \  | |_) || |    | |_| | \ V /
-| |_| || |  | | / ___ \ |  _ < | |___ |  _  |  | |
- \___/ |_|  |_|/_/   \_\|_| \_\ \____||_| |_|  |_|
+                 ▄▄▄
+ ▄█████▄    ▄███████████▄    ▄███████   ▄███████   ▄███████   ▄█   █▄    ▄█   █▄
+███   ███  ███   ███   ███  ███   ███  ███   ███  ███   ███  ███   ███  ███   ███
+███   ███  ███   ███   ███  ███   ███  ███   ███  ███   █▀   ███   ███  ███   ███
+███   ███  ███   ███   ███ ▄███▄▄▄███ ▄███▄▄▄██▀  ███       ▄███▄▄▄███▄ ███▄▄▄███
+███   ███  ███   ███   ███ ▀███▀▀▀███ ▀███▀▀▀▀    ███      ▀▀███▀▀▀███  ▀▀▀▀▀▀███
+███   ███  ███   ███   ███  ███   ███ ██████████  ███   █▄   ███   ███  ▄██   ███
+███   ███  ███   ███   ███  ███   ███  ███   ███  ███   ███  ███   ███  ███   ███
+ ▀█████▀    ▀█   ███   █▀   ███   █▀   ███   ███  ███████▀   ███   █▀    ▀█████▀
+                                       ███   █▀
 
    Welcome to A Changing World with Omarchy
    Welcome to the Beautiful, Fun & Agentic Linux   @DHH
@@ -128,10 +133,38 @@ rather than deleted.
 Every rc file is checked, not just the one for your current `$SHELL`, in case
 you have switched shells since installing.
 
+## The wordmark
+
+This is Omarchy's own wordmark, not a figlet approximation of it. Upstream keeps
+it as Unicode half-block art in `logo.txt`, generated from `logo.svg` by
+`omarchy-transcode-ascii` (which needs ImageMagick). The banner picks the first
+of these that fits your terminal:
+
+| Source | Width | When |
+|---|---|---|
+| `$CHRONARA_LOGO` | any | you point it at your own art |
+| `~/.local/share/omarchy/logo.txt` | as installed | on a real Omarchy box, so it tracks your version |
+| bundled `logo.txt` | 81 cols | upstream art, verbatim |
+| bundled `logo-narrow.txt` | 64 cols | narrow terminals |
+| figlet wordmark | 52 cols | only if none of the above fit |
+
+`logo-narrow.txt` was produced by `bin/fit-logo`, which rescales half-block art
+without ImageMagick. Half-block packs two vertical pixels per character cell, so
+the text is a lossless 1-bit bitmap at double vertical resolution: decode it,
+area-average down, re-encode. Regenerate at any width with:
+
+```sh
+./bin/fit-logo logo.txt 72 0.55 > logo-72.txt
+CHRONARA_LOGO=$PWD/logo-72.txt ./install.sh --preview
+```
+
+The third argument is the coverage threshold. Lower keeps more ink and thickens
+the strokes; higher thins them. 0.55 reads best at 64 columns.
+
 ## Colours
 
-The wordmark is coloured column by column to reproduce the gradient from
-`omarchy-show-logo` rather than approximate it with a flat colour:
+The wordmark is coloured column by column, so it carries a gradient rather than
+one flat colour:
 
 | Stop | Hex |
 |---|---|
@@ -139,10 +172,19 @@ The wordmark is coloured column by column to reproduce the gradient from
 | violet | `#C77DF5` |
 | blue | `#7FB8FF` |
 
+Upstream `omarchy-show-logo` prints the same art in plain green (`\033[32m`);
+the gradient here is this repo's treatment of it, matched to how the wordmark
+appears under a themed terminal.
+
 Truecolor terminals get 24-bit output. Terminals that do not advertise
 `COLORTERM=truecolor` fall back to the nearest colours in the 256-colour cube.
-Piping the banner to a file or a pipe drops colour entirely, so it stays
-readable in logs.
+Piping the banner to a file drops colour entirely, so it stays readable in logs.
+
+The gradient walks glyphs rather than bytes. Each block glyph is three bytes in
+UTF-8, and `awk` on macOS counts bytes while `gawk` counts characters, so the
+renderer measures a glyph once at startup and steps accordingly. Without that,
+byte-wise `substr` slices each glyph into thirds and the art comes out as
+mojibake.
 
 ## The identity card
 
@@ -175,8 +217,10 @@ works, so the same dotfiles cover an Omarchy desktop, an Arch server and a Mac.
 
 - **Omarchy** by [David Heinemeier Hansson](https://dhh.dk) (@dhh) and Basecamp,
   [omarchy.org](https://omarchy.org) / [basecamp/omarchy](https://github.com/basecamp/omarchy).
-  The wordmark and its gradient are Omarchy's; this repo just renders them in the
-  shell. The strapline is a nod to Omarchy's own framing of a beautiful, fun
+  `logo.txt` here is Omarchy's own wordmark art, redistributed under Omarchy's
+  MIT licence (Copyright David Heinemeier Hansson); `logo-narrow.txt` is a
+  rescaled rendition of it. The wordmark is Omarchy's, and this repo only
+  renders it in the shell. The strapline is a nod to Omarchy's own framing of a beautiful, fun
   Linux, with "agentic" added because that is what these boxes are for.
 - **Starship** ([starship.rs](https://starship.rs)) for the prompt this config drives.
 - **tmux** for everything the `tmux.conf` sits on top of.
